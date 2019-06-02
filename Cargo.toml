@@ -4,6 +4,9 @@ version = "8.6.1-beta"
 authors = ["Jack Gerrits <jack@jackgerrits.com>"]
 edition = "2018"
 links = "libvw_c_wrapper"
+repository = "https://github.com/jackgerrits/vowpalwabbit-sys-rs"
+license = "MIT"
+description = "Rust bindings for VowpalWabbit"
 
 [build-dependencies]
 pkg-config = "0.3.14"
