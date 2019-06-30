@@ -4,7 +4,8 @@ extern crate bindgen;
 use std::env;
 use std::path::PathBuf;
 fn main() {
-    pkg_config::Config::new().atleast_version("8.6.1").probe("libvw_c_wrapper").unwrap();
+    const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+    pkg_config::Config::new().atleast_version(VERSION).probe("libvw_c_wrapper").unwrap();
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
