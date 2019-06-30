@@ -5,6 +5,7 @@ authors = ["Jack Gerrits <jack@jackgerrits.com>"]
 edition = "2018"
 links = "libvw_c_wrapper"
 repository = "https://github.com/jackgerrits/vowpalwabbit-sys-rs"
+documentation = "https://jackgerrits.com/vowpalwabbit-sys-rs/8_6_1/vowpalwabbit_sys/"
 license = "MIT"
 description = "Rust bindings for VowpalWabbit"
 
