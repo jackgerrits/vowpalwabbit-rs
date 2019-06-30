@@ -8,6 +8,7 @@ repository = "https://github.com/jackgerrits/vowpalwabbit-sys-rs"
 documentation = "https://jackgerrits.com/vowpalwabbit-sys-rs/8_6_1/vowpalwabbit_sys/"
 license = "MIT"
 description = "Rust bindings for VowpalWabbit"
+readme="readme.md"
 
 [build-dependencies]
 pkg-config = "0.3.14"
