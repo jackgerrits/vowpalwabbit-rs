@@ -1,0 +1,16 @@
+name: Rust
+
+on: [push]
+
+jobs:
+  build:
+    container: vowpalwabbit/ubuntu1604-build:0.1.0
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get VW
+      run: cd $GITHUB_WORKSPACE/.. && git clone https://github.com/VowpalWabbit/vowpal_wabbit.git && cd vowpal_wabbit && mkdir build && cd build && cmake .. && make install -j 4 && cd $GITHUB_WORKSPACE
+    - uses: actions/checkout@v1
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
