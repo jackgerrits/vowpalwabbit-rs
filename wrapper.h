@@ -1,3 +1,3 @@
 #include <stddef.h>
 
-#include <vowpalwabbit/vowpalwabbit/vwdll.h>
+#include <vowpalwabbit/vwdll.h>
