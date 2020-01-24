@@ -22,6 +22,8 @@ fn main() {
         .build_target("vw_c_wrapper")
         .cxxflag(exception_handling_flag)
         .build();
+    println!("cargo:rustc-link-search=native={}", dst.join("bin").display());
+    println!("cargo:rustc-link-search=native={}", dst.join("lib").display());
     println!("cargo:rustc-link-search=native={}", dst.join("bin/Debug").display());
     println!("cargo:rustc-link-search=native={}", dst.join("lib/Debug").display());
     println!("cargo:rustc-link-search=native={}", dst.join("bin/Release").display());
