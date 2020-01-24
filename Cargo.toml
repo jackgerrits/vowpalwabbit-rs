@@ -8,7 +8,7 @@ repository = "https://github.com/jackgerrits/vowpalwabbit-sys-rs"
 license = "MIT"
 description = "Rust bindings for VowpalWabbit"
 readme = "readme.md"
-keywords = ["vowpal wabbit", "vowpal-wabbit", "machine learning", "reinforcement learning"]
+keywords = ["vowpal-wabbit", "machine-learning", "reinforcement-learning"]
 
 [build-dependencies]
 bindgen = "0.52.0"
