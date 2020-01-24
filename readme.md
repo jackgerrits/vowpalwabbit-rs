@@ -5,10 +5,6 @@ This crate wraps [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit)'s
 
 See [vowpalwabbit-rs](https://github.com/jackgerrits/vowpalwabbit-rs) for the Rust wrapper around the sys package. This is still a work in progress.
 
-## Documentation
-- [8.7.0](https://jackgerrits.com/vowpalwabbit-sys-rs/8_7_0/vowpalwabbit_sys/)
-- [8.6.1](https://jackgerrits.com/vowpalwabbit-sys-rs/8_6_1/vowpalwabbit_sys/)
-
 ## Example
 
 The following is an example for a basic usecase similar to command line driver mode. VW is initialized, an example run through the parser then prediction pipeline. Finally the example and VW object are finished.
