@@ -9,6 +9,28 @@ license = "MIT"
 description = "Rust bindings for VowpalWabbit"
 readme = "readme.md"
 keywords = ["vowpal-wabbit", "machine-learning", "reinforcement-learning"]
+exclude = [
+    "*.exe",
+    "*.natvis",
+    "*.vcxproj",
+    "*.vcxproj.filters",
+    "*.model",
+    "*.pred",
+    "*.stderr",
+    "*.stdout",
+    "*.json",
+    "external/vowpal_wabbit/utl/**",
+    "external/vowpal_wabbit/python/**",
+    "external/vowpal_wabbit/logo_assets/**",
+    "external/vowpal_wabbit/java/**",
+    "external/vowpal_wabbit/demo/**",
+    "external/vowpal_wabbit/R/**",
+    "**/!zlib/test/**",
+    "**/doc/**",
+    "*.png",
+    "*.svg",
+    "*.rst",
+]
 
 [build-dependencies]
 bindgen = "0.52.0"
