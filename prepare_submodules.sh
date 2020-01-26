@@ -7,7 +7,5 @@ git submodule update --init external/boost
 git submodule update --init external/boost-cmake
 git submodule update --init external/zlib
 cd external/boost
-git submodule update --init libs/program_options
-git submodule update --init libs/thread
-git submodule update --init libs/system
+git submodule update --init libs/*
 cd ../../../../
