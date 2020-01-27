@@ -37,7 +37,11 @@ Current Boost dependencies:
 ### To update Boost dependencies:
 Remove all non-included submodules:
 ```sh
-rm -rf !(align|any|array|assert|bind|concept_check|config|container|container_hash|core|detail|function|headers|integer|iterator|lexical_cast|math|move|mpl|numeric_conversion|predef|preprocessor|program_options|range|smart_ptr|static_assert|static_cast|throw_exception|tokenizer|type_index|type_traits|utility|*html|*.txt)
+cd libs
+rm -rf !(align|any|array|assert|bind|concept_check|config|container|container_hash|core|detail|function|headers|integer|iterator|lexical_cast|math|move|mpl|numeric|predef|preprocessor|program_options|range|smart_ptr|static_assert|static_cast|throw_exception|tokenizer|type_index|type_traits|utility|*html|*.txt)
+cd numeric
+rm -rf !(conversion|*html|*.txt)
+cd ../..
 ```
 
 Update `.gitmodules` and change the relative path to an absolute path:
