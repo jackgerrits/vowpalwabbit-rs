@@ -25,11 +25,15 @@ exclude = [
     "external/vowpal_wabbit/java/**",
     "external/vowpal_wabbit/demo/**",
     "external/vowpal_wabbit/R/**",
+    "external/vowpal_wabbit/rapidjson/thirdparty/*",
+    "**/test/**",
     "**/!zlib/test/**",
     "**/doc/**",
     "*.png",
     "*.svg",
     "*.rst",
+    "*.gz",
+    "*.md",
 ]
 
 [build-dependencies]
