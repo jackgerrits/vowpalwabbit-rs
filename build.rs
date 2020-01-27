@@ -16,6 +16,7 @@ fn main() {
         .define("STATIC_LINK_VW_JAVA", "On")
         .define("VW_INSTALL", "Off")
         .define("BUILD_TESTS", "Off")
+        .define("GIT_SUBMODULE", "Off")
         .define("CMAKE_ARCHIVE_OUTPUT_DIRECTORY", out_path.join("lib"))
         .define("CMAKE_LIBRARY_OUTPUT_DIRECTORY", out_path.join("lib"))
         .define("CMAKE_RUNTIME_OUTPUT_DIRECTORY", out_path.join("bin"))
