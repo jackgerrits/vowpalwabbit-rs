@@ -27,7 +27,7 @@ exclude = [
     "external/vowpal_wabbit/R/**",
     "external/vowpal_wabbit/rapidjson/thirdparty/*",
     "**/test/**",
-    "**/!zlib/test/**",
+    "!**/zlib/test/**",
     "**/doc/**",
     "*.png",
     "*.svg",
