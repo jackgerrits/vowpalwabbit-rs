@@ -1,5 +1,5 @@
 # VowpalWabbit-sys-rs
-[![build](https://github.com/jackgerrits/vowpalwabbit-sys-rs/workflows/build/badge.svg)](https://github.com/jackgerrits/vowpalwabbit-sys-rs/actions?query=workflow%3Abuild)
+[![build](https://github.com/jackgerrits/vowpalwabbit-sys-rs/workflows/build/badge.svg?branch=master)](https://github.com/jackgerrits/vowpalwabbit-sys-rs/actions?query=workflow%3Abuild)
 [![Crates.io](https://img.shields.io/crates/v/vowpalwabbit-sys.svg)](https://crates.io/crates/vowpalwabbit-sys)
 [![Docs](https://docs.rs/vowpalwabbit-sys/badge.svg)](https://docs.rs/vowpalwabbit-sys)
 
