@@ -1,7 +1,7 @@
 # VowpalWabbit-sys-rs
 [![Crates.io](https://img.shields.io/crates/v/vowpalwabbit-sys.svg)](https://crates.io/crates/vowpalwabbit-sys)
 
-This crate wraps [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit)'s C binding interface. It handles finding the installed VW binaries on the system and linking them into a Rust crate.
+This crate wraps [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit)'s C binding interface. It builds the package from source on each plaform, including the dependencies (Zlib and Boost).
 
 See [vowpalwabbit-rs](https://github.com/jackgerrits/vowpalwabbit-rs) for the Rust wrapper around the sys package. This is still a work in progress.
 

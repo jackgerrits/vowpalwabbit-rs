@@ -4,17 +4,6 @@
 
 //! Rust bindings for the [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit) C-binding surface.
 //!
-//! __Note:__ Currently this crate only supports discovering VW through `pkg-config`, therefore VowpalWabbit
-//! must be installed using `make install` for this crate to be able to find it and link to it. This
-//! crate is not yet supported on Windows, once VW supports Vcpkg then this crate will use that to discover it.
-//!
-//! In order to get the library installed:
-//! 1. Clone [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit)
-//! 2. `mkdir build`
-//! 3. `cd build`
-//! 4. `make -j 8`
-//! 5. `make install`
-//!
 //! ### Example
 //! The following is an example for a basic usecase similar to command line driver mode. VW is initialized, an example run through the parser then prediction pipeline. Finally the example and VW object are finished.
 //! ```
