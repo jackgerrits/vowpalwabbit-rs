@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/vowpalwabbit-sys.svg)](https://crates.io/crates/vowpalwabbit-sys)
 [![Docs](https://docs.rs/vowpalwabbit-sys/badge.svg)](https://docs.rs/vowpalwabbit-sys)
 
-This crate wraps [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit)'s C binding interface. This crate wraps all of the dependencies and builds from source on each platform.
+This crate wraps [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit)'s C binding interface. This crate wraps all of the dependencies and builds from source on each platform. For details about how the dependencies are configured see [here](https://github.com/jackgerrits/vowpalwabbit-sys-rs/blob/master/dependencies.md).W
 
 See [vowpalwabbit-rs](https://github.com/jackgerrits/vowpalwabbit-rs) for the Rust wrapper around the sys package. This is still a work in progress.
 

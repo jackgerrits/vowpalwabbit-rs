@@ -6,7 +6,7 @@ Dependencies for VowpalWabbit are packaged with the crate and are built from sou
 - `external/vowpal_wabbit/external/zlib`
 	- The CMakeLists.txt checked into Zlib includes a file rename in the source dir that breaks the docs.rs source dir read only build
 - `external/vowpal_wabbit/external/boost-cmake`
-	- The experimental[git support](https://github.com/Orphis/boost-cmake/tree/git_support)branch is being used. Instead of allowing it to use `FetchContent`, there is a custom fork of Boost checked in. This repo is forked to remove the `FetchContent` usage and bring the `cmake_minimum_required` down to `3.10` in order to support docs.rs
+	- The experimental [git support](https://github.com/Orphis/boost-cmake/tree/git_support) branch is being used. Instead of allowing it to use `FetchContent`, there is a custom fork of Boost checked in. This repo is forked to remove the `FetchContent` usage and bring the `cmake_minimum_required` down to `3.10` in order to support docs.rs
 - `external/vowpal_wabbit/external/boost`
 	- `boost-cmake` enumerates the `libs` directory. To reduce crate size and configure time all of the unused libs had to be removed from this dir
 	- See [below](#Boost-dependency) for the Boost dependencies used and how to update the fork if needed
