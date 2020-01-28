@@ -1,5 +1,18 @@
-Dependencies for VowpalWabbit are packaged with the crate and are built from source. ZLib is simply bundled as a submodule and included with CMake. Boost, however, is a bit more complex. The experimental[git support](https://github.com/Orphis/boost-cmake/tree/git_support) in [Boost-CMake](https://github.com/Orphis/boost-cmake) is being used. Instead of allowing it to use `FetchContent`, there is a custom fork of Boost checked in. It is forked because using a partial checkout of the Boost modular repo did not play well with Boost-CMake.
+# Dependencies
+Dependencies for VowpalWabbit are packaged with the crate and are built from source. In order to get a standalone, from source build working, several repos had to be forked.
 
+- `external/vowpal_wabbit`
+	- Forked in order to bundle dependencies in the source tree. The CMake build definition had the find_package parts remove and the external directory added
+- `external/vowpal_wabbit/external/zlib`
+	- The CMakeLists.txt checked into Zlib includes a file rename in the source dir that breaks the docs.rs source dir read only build
+- `external/vowpal_wabbit/external/boost-cmake`
+	- The experimental[git support](https://github.com/Orphis/boost-cmake/tree/git_support)branch is being used. Instead of allowing it to use `FetchContent`, there is a custom fork of Boost checked in. This repo is forked to remove the `FetchContent` usage and bring the `cmake_minimum_required` down to `3.10` in order to support docs.rs
+- `external/vowpal_wabbit/external/boost`
+	- `boost-cmake` enumerates the `libs` directory. To reduce crate size and configure time all of the unused libs had to be removed from this dir
+	- See [below](#Boost-dependency) for the Boost dependencies used and how to update the fork if needed
+
+
+## Boost dependencies
 Current Boost dependencies:
 - align
 - any
@@ -34,7 +47,7 @@ Current Boost dependencies:
 - type_traits
 - utility
 
-### To update Boost dependencies:
+### How to update Boost dependencies
 Remove all non-included submodules:
 ```sh
 cd libs
