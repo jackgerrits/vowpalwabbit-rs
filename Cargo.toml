@@ -1,6 +1,6 @@
 [package]
 name = "vowpalwabbit-sys"
-version = "8.8.0+post3"
+version = "8.8.1+vw-v8.8.0"
 authors = ["Jack Gerrits <jack@jackgerrits.com>"]
 edition = "2018"
 links = "libvw_c_wrapper"

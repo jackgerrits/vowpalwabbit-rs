@@ -7,6 +7,8 @@ This crate wraps [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit)'s
 
 See [vowpalwabbit-rs](https://github.com/jackgerrits/vowpalwabbit-rs) for the Rust wrapper around the sys package. This is still a work in progress.
 
+The major and minor versions of this crate track that of the native VW library that is wraps. The patch version, though, may be out of sync due to the need to patch the crate out of sync with the native dependency. Starting at version `8.8.1+vw-v8.8.0` you can determine the version of Vowpal Wabbit that it wraps by looking at the associated SemVer metadata. In this case it is `vw-v8.8.0` indicating the wrapped Vowpal Wabbit version is `8.8.0`.
+
 ## Example
 
 The following is an example for a basic usecase similar to command line driver mode. VW is initialized, an example run through the parser then prediction pipeline. Finally the example and VW object are finished.
