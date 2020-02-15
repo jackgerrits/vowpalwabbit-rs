@@ -29,3 +29,17 @@ unsafe {
   vowpalwabbit_sys::VW_Finish(vw_handle);
 }
 ```
+
+## Troubleshooting
+
+If the build fails with something like the following:
+```
+thread 'main' panicked at 'Unable to find libclang: "couldn\'t find any valid shared libraries matching: [\'clang.dll\', \'libclang.dll\'], set the `LIBCLANG_PATH` environment variable to a path where one of these files can be found (invalid: [])"', src\libcore\result.rs:1188:5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace.
+```
+You need to install LLVM as the header codegen requires it.
+
+On Windows:
+1. Download and install LLVM: http://releases.llvm.org/
+2. Set the environment variable `LIBCLANG_PATH` to where `libclang.dll` or `clang.dll` is located
+    - You can find the install location of LLVM by using `where clang`
