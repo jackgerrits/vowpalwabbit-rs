@@ -2,11 +2,13 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+// The doctest must be turned off due to this issue: https://github.com/rust-lang/cargo/issues/8531
+
 //! Rust bindings for the [VowpalWabbit](https://github.com/VowpalWabbit/vowpal_wabbit) C-binding surface.
 //!
 //! ### Example
-//! The following is an example for a basic usecase similar to command line driver mode. VW is initialized, an example run through the parser then prediction pipeline. Finally the example and VW object are finished.
-//! ```
+//! The following is an example for a basic usecase similar to command line driver mode. VW is initialized, an example run through the parser then prediction pipeline. Finally the example and VW object are finished
+//! ```no_run
 //! use std::ffi::CString;
 //!
 //! unsafe {
