@@ -32,6 +32,9 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y ninja-build
+    - name: Install Ninja MacOS
+      if: matrix.os == 'macos-latest'
+      run: brew install ninja
     - name: Clean cache for package
       run: cargo clean -p vowpalwabbit-sys
     - name: Build
