@@ -1,3 +1,0 @@
-[submodule "external/vowpal_wabbit"]
-	path = external/vowpal_wabbit
-	url = https://github.com/jackgerrits/vowpal_wabbit.git
