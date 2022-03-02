@@ -1,42 +1,6 @@
-[package]
-name = "vowpalwabbit-sys"
-version = "8.8.1+vw-v8.8.0"
-authors = ["Jack Gerrits <jack@jackgerrits.com>"]
-edition = "2018"
-links = "libvw_c_wrapper"
-repository = "https://github.com/jackgerrits/vowpalwabbit-sys-rs"
-license = "MIT"
-description = "Rust bindings for VowpalWabbit"
-readme = "readme.md"
-keywords = ["vowpal-wabbit", "machine-learning"]
-categories = ["science", "external-ffi-bindings"]
-exclude = [
-    "*.exe",
-    "*.natvis",
-    "*.vcxproj",
-    "*.vcxproj.filters",
-    "*.model",
-    "*.pred",
-    "*.stderr",
-    "*.stdout",
-    "*.json",
-    "external/vowpal_wabbit/utl/**",
-    "external/vowpal_wabbit/python/**",
-    "external/vowpal_wabbit/logo_assets/**",
-    "external/vowpal_wabbit/java/**",
-    "external/vowpal_wabbit/demo/**",
-    "external/vowpal_wabbit/R/**",
-    "external/vowpal_wabbit/rapidjson/thirdparty/*",
-    "**/test/**",
-    "!**/zlib/test/**",
-    "**/doc/**",
-    "*.png",
-    "*.svg",
-    "*.rst",
-    "*.gz",
-    "*.md",
-]
+[workspace]
 
-[build-dependencies]
-bindgen = "0.59.0"
-cmake = "0.1.45"
+members = [
+    "vowpalwabbit",
+    "vowpalwabbit-sys",
+]

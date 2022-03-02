@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=/usr/local/bin
+libdir=/usr/local/lib
+includedir=/usr/local/include
+
+Name: Vowpal Wabbit Rust Bindings DLL
+URL: https://github.com/jackgerrits/vowpalwabbit-rs
+Version: ..
+Libs: -L${libdir} -lvw_rs_bindings
+Cflags: -I${includedir}/vw_rs_bindings

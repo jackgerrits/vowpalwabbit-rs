@@ -1,0 +1,15 @@
+[package]
+name = "vowpalwabbit"
+version = "0.1.0"
+authors = ["Jack Gerrits <jack@jackgerrits.com>"]
+edition = "2021"
+repository = "https://github.com/jackgerrits/vowpalwabbit-rs"
+license = "MIT"
+description = "Bindings for Vowpal Wabbit library"
+readme = "readme.md"
+keywords = ["vowpal-wabbit", "machine-learning"]
+
+[dependencies]
+byteorder = "1.3.2"
+thiserror = "1.0.30"
+vowpalwabbit-sys = { path = "../vowpalwabbit-sys" }
