@@ -10,7 +10,6 @@ fn main() {
         {
             println!("cargo:rustc-link-search=native={}", path);
             println!("cargo:rustc-link-lib=dylib=vw_rs_bindings");
-            println!("cargo:rustc-env=LD_LIBRARY_PATH={}", path);
             // Exit early from build script
             return ();
         }
@@ -22,7 +21,6 @@ fn main() {
         Ok(res) => {
             for link_path in &res.link_paths {
                 println!("cargo:rustc-link-search=native={}", link_path.display());
-                println!("cargo:rustc-env=LD_LIBRARY_PATH={}", link_path.display());
             }
 
             for lib in &res.libs {
