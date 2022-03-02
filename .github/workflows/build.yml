@@ -12,6 +12,17 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: "recursive"
+    - name: Install Ninja MacOS
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install ninja
+        echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+    - name: Install Ninja Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
+        echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
     - name: Build native library
       run: |
         cmake -S vowpalwabbit-sys/binding -B build -DCMAKE_BUILD_TYPE=Debug
