@@ -10,3 +10,8 @@ See the [vowpalwabbit crate](../vowpalwabbit) for the Rust wrapper around the sy
 The major and minor versions of this crate track that of the native VW library that is wraps. The patch version, though, may be out of sync due to the need to patch the crate out of sync with the native dependency. Starting at version `8.8.1+vw-v8.8.0` you can determine the version of Vowpal Wabbit that it wraps by looking at the associated SemVer metadata. In this case it is `vw-v8.8.0` indicating the wrapped Vowpal Wabbit version is `8.8.0`.
 
 ## How to regenerate the bindings
+
+```sh
+cargo install bindgen
+bindgen binding/include/vw_rs_bindings/binding.hpp -o src/bindings.rs
+```
