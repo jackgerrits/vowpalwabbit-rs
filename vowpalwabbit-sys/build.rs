@@ -9,7 +9,7 @@ fn main() {
         Ok(path) =>
         {
             println!("cargo:rustc-link-search=native={}", path);
-            println!("cargo:rustc-link-lib=vw_rs_bindings");
+            println!("cargo:rustc-link-lib=dylib=vw_rs_bindings");
             println!("cargo:rustc-env=LD_LIBRARY_PATH={}", path);
             // Exit early from build script
             return ();
@@ -26,7 +26,7 @@ fn main() {
             }
 
             for lib in &res.libs {
-                println!("cargo:rustc-link-lib={}", lib);
+                println!("cargo:rustc-link-lib=dylib={}", lib);
             }
 
             // Exit early from build script
@@ -77,5 +77,5 @@ fn main() {
         "cargo:rustc-link-search=native={}",
         dst.join("lib/Release").display()
     );
-    println!("cargo:rustc-link-lib=vw_rs_bindings");
+    println!("cargo:rustc-link-lib=dylib=vw_rs_bindings");
 }
