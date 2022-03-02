@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -16,26 +16,16 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         brew install ninja
-        echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
     - name: Install Ninja Ubuntu
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install -y ninja-build
-        echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
     - name: Build native library
       run: |
-        cmake -S vowpalwabbit-sys/binding -B build -DCMAKE_BUILD_TYPE=Debug
+        cmake -S vowpalwabbit-sys/binding -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
         cmake --build build --target vw_rs_bindings --config Debug
-        cmake --install build --prefix install_dir --config Debug
-    - if: matrix.os == 'windows-latest'
-      run: |
-        echo "${{runner.workspace}}/install_dir/bin" >> $GITHUB_PATH
-        echo "VW_RS_BINDINGS_DIR=${{runner.workspace}}/install_dir/lib" >> $GITHUB_ENV
-    - if: matrix.os != 'windows-latest'
-      run: |
-        echo "LD_LIBRARY_PATH=${{runner.workspace}}/install_dir/lib" >> $GITHUB_ENV
-        echo "VW_RS_BINDINGS_DIR=${{runner.workspace}}/install_dir/lib" >> $GITHUB_ENV
+        cmake --install build --config Debug
     - name: Build Rust
       run: cargo build --verbose
     - name: Run tests
