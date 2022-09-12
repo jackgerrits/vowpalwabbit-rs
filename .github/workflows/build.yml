@@ -28,8 +28,8 @@ jobs:
         buildPreset: 'vcpkg'
     - working-directory: binding
       run: |
-        sudo cmake --install build
+        cmake --install build --strip
     - name: Build Rust
-      run: cargo build --verbose
+      run: cargo build -vv
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test -vv

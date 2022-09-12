@@ -7,7 +7,7 @@ git submodule update --init binding/external/vowpal_wabbit
 git submodule update --init binding/external/vcpkg
 cmake --preset=vcpkg
 cmake --build --preset=vcpkg
-sudo cmake --install build
+sudo cmake --install build --strip
 ```
 
 After this initial step, the `VowpalWabbit-sys` and `VowpalWabbit` crates should function as expected.
