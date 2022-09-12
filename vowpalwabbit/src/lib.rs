@@ -6,7 +6,7 @@ use std::ffi::CString;
 
 use thiserror::Error;
 
-use vowpalwabbit_sys::bindings::VW_STATUS_SUCCESS;
+use vowpalwabbit_sys::VW_STATUS_SUCCESS;
 
 #[derive(Error, Debug)]
 pub enum VWError {
@@ -47,7 +47,7 @@ impl ErrorMessageHolder {
 impl Drop for ErrorMessageHolder {
     fn drop(&mut self) {
         unsafe {
-            let res = vowpalwabbit_sys::bindings::VWFreeErrorMessage(self.error_string);
+            let res = vowpalwabbit_sys::VWFreeErrorMessage(self.error_string);
             if res != VW_STATUS_SUCCESS {
                 panic!("Error while dropping error message");
             }
@@ -56,12 +56,12 @@ impl Drop for ErrorMessageHolder {
 }
 
 pub struct Workspace {
-    workspace: *mut vowpalwabbit_sys::bindings::VWWorkspace,
+    workspace: *mut vowpalwabbit_sys::VWWorkspace,
 }
 
 impl Workspace {
     pub fn new(args: &[String]) -> Result<Workspace, VWError> {
-        let mut workspace: *mut vowpalwabbit_sys::bindings::VWWorkspace = std::ptr::null_mut();
+        let mut workspace: *mut vowpalwabbit_sys::VWWorkspace = std::ptr::null_mut();
 
         // let mut x: vowpalwabbit_sys::bindings::VWWorkspace = vowpalwabbit_sys::bindings::VWWorkspace;
 
@@ -77,7 +77,7 @@ impl Workspace {
 
         let mut error_message_holder = ErrorMessageHolder::new();
         unsafe {
-            let res = vowpalwabbit_sys::bindings::VWInitializeWorkspace(
+            let res = vowpalwabbit_sys::VWInitializeWorkspace(
                 c_args.as_ptr(),
                 c_args.len() as c_int,
                 &mut workspace,
@@ -98,7 +98,7 @@ impl Workspace {
     pub fn run_driver(&mut self) -> Result<(), VWError> {
         let mut error_message_holder = ErrorMessageHolder::new();
         unsafe {
-            let res = vowpalwabbit_sys::bindings::VWRunDriver(self.workspace, error_message_holder.get_mut_ptr());
+            let res = vowpalwabbit_sys::VWRunDriver(self.workspace, error_message_holder.get_mut_ptr());
              if res != 0 {
                 match error_message_holder.to_string() {
                     Some(message) => Err(VWError::Failure(message)),
@@ -115,7 +115,7 @@ impl Drop for Workspace {
     fn drop(&mut self) {
         unsafe {
             let mut error_string: *const ::std::os::raw::c_char = std::ptr::null();
-            let res = vowpalwabbit_sys::bindings::VWFreeWorkspace(self.workspace, &mut error_string);
+            let res = vowpalwabbit_sys::VWFreeWorkspace(self.workspace, &mut error_string);
             if res != VW_STATUS_SUCCESS {
                 let message = if !error_string.is_null() {
                     CStr::from_ptr(error_string).to_string_lossy().into_owned()
@@ -126,4 +126,12 @@ impl Drop for Workspace {
             }
         }
     }
+}
+
+
+#[test]
+fn create_workspace()
+{
+    let args: Vec<String> = vec!["--version".to_owned()];
+    let _ = Workspace::new(&args);
 }

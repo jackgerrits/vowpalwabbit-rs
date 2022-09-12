@@ -1,0 +1,13 @@
+{
+"$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+"name": "vw-rs-bindings",
+"version": "0.1.0",
+"dependencies": [
+    "boost-math",
+    "flatbuffers",
+    "fmt",
+    "rapidjson",
+    "spdlog",
+    "zlib"
+]
+}

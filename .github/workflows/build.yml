@@ -7,11 +7,25 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v2
+    - run: |
+        git submodule update binding/external/vowpal_wabbit
+        cd binding/external/vowpal_wabbit
+        git submodule update ext_libs/vcpkg
+    - name: Setup MSVC Developer Command Prompt
+      if: ${{ startsWith(matrix.os, 'windows') }}
+      uses: ilammy/msvc-dev-cmd@v1
+    - uses: lukka/get-cmake@latest
+    - uses: lukka/run-vcpkg@main
       with:
-        submodules: "recursive"
+        vcpkgDirectory: '${{ github.workspace }}/binding/external/vowpal_wabbit/ext_libs/vcpkg'
+        vcpkgJsonGlob: "${{ github.workspace }}/binding/vcpkg.json"
+    - run: |
+        cmake --preset=vcpkg
+        cmake --build --preset=vcpkg
+        sudo cmake --install build
     - name: Build Rust
       run: cargo build --verbose
     - name: Run tests

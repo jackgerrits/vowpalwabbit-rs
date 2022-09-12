@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "config/options.h"
-#include "config/options_cli.h"
-#include "vw.h"
+#include "vw/config/options.h"
+#include "vw/config/options_cli.h"
+#include "vw/core/vw.h"
 
 const char* copy_cstr(const char* str)
 {
