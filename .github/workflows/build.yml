@@ -11,17 +11,15 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v2
-    - run: |
-        git submodule update --init binding/external/vowpal_wabbit
-        cd binding/external/vowpal_wabbit
-        git submodule update --init ext_libs/vcpkg
+      with:
+        submodules: true
     - name: Setup MSVC Developer Command Prompt
       if: ${{ startsWith(matrix.os, 'windows') }}
       uses: ilammy/msvc-dev-cmd@v1
     - uses: lukka/get-cmake@latest
     - uses: lukka/run-vcpkg@main
       with:
-        vcpkgDirectory: '${{ github.workspace }}/binding/external/vowpal_wabbit/ext_libs/vcpkg'
+        vcpkgDirectory: '${{ github.workspace }}/binding/external/vcpkg'
         vcpkgJsonGlob: "${{ github.workspace }}/binding/vcpkg.json"
     - uses: lukka/run-cmake@v10
       with:

@@ -3,11 +3,8 @@
 The `VowpalWabbit-sys` crate searches for a library called `vw_rs_bindings`. This needs to be present on your system in order to use the bindings. To install it on Windows/MacOS/Linux the following should. It handles dependencies using vcpkg.
 
 ```sh
-git submodule update binding/external/vowpal_wabbit
-cd binding/external/vowpal_wabbit
-git submodule update ext_libs/vcpkg
-cd ../../..
-
+git submodule update --init binding/external/vowpal_wabbit
+git submodule update --init binding/external/vcpkg
 cmake --preset=vcpkg
 cmake --build --preset=vcpkg
 sudo cmake --install build
