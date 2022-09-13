@@ -42,6 +42,6 @@ jobs:
         LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
     - name: Run tests
       run: cargo test -vv
-      with:
+      env:
         # Required to make it work in some Linux situations
         LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib

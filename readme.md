@@ -10,4 +10,17 @@ cmake --build --preset=vcpkg
 sudo cmake --install build --strip
 ```
 
+After installing you may need to update the runtime search path to make sure it is findable.
+
+Ubuntu
+```sh
+export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
+```
+
+Windows
+
+```powershell
+$env:Path += ';C:/Program Files (x86)/vowpalwabbit-rs-bindings/bin/'
+```
+
 After this initial step, the `VowpalWabbit-sys` and `VowpalWabbit` crates should function as expected.
