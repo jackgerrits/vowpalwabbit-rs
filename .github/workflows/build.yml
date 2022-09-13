@@ -26,9 +26,12 @@ jobs:
         cmakeListsTxtPath: '${{ github.workspace }}/binding/CMakeLists.txt'
         configurePreset: 'vcpkg'
         buildPreset: 'vcpkg'
-    - working-directory: binding
-      run: |
-        cmake --install build --strip
+    - if: ${{ startsWith(matrix.os, 'windows') == false }}
+      working-directory: binding
+      run: sudo cmake --install build --strip
+    - if: ${{ startsWith(matrix.os, 'windows') }}
+      working-directory: binding
+      run: cmake --install build --strip
     - name: Build Rust
       run: cargo build -vv
     - name: Run tests
