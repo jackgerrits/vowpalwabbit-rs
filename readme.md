@@ -6,6 +6,7 @@ The `VowpalWabbit-sys` crate searches for a library called `vw_rs_bindings`. Thi
 ```sh
 git submodule update --init binding/external/vowpal_wabbit
 git submodule update --init binding/external/vcpkg
+cd binding
 cmake --preset=vcpkg
 cmake --build --preset=vcpkg
 sudo cmake --install build --strip

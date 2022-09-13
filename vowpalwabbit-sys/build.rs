@@ -35,4 +35,7 @@ fn main() {
     }
 
     println!("cargo:rustc-link-lib=dylib=vw_rs_bindings");
+
+    // Support some sort of VW_RS_ROOT envvar so that a Windows user can specify the include dir
+    // println!(r"cargo:rustc-link-search=native=C:\Program Files (x86)\vowpalwabbit-rs-bindings\lib");
 }
