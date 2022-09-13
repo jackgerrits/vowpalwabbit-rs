@@ -3,7 +3,6 @@ name = "vowpalwabbit-sys"
 version = "9.0.0+vw-v9.0.0"
 authors = ["Jack Gerrits <jack@jackgerrits.com>"]
 edition = "2021"
-links = "vw_rs_bindings"
 repository = "https://github.com/jackgerrits/vowpalwabbit-rs"
 license = "MIT"
 description = "Rust bindings for VowpalWabbit"
