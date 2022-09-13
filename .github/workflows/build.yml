@@ -4,52 +4,58 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        config:
+          [
+            { os: ubuntu-latest, preset: vcpkg },
+            { os: macos-latest, preset: vcpkg },
+            { os: windows-latest, preset: vcpkg-windows },
+          ]
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
-    - name: Setup MSVC Developer Command Prompt
-      if: ${{ startsWith(matrix.os, 'windows') }}
-      uses: ilammy/msvc-dev-cmd@v1
-    - uses: lukka/get-cmake@latest
-    - uses: lukka/run-vcpkg@main
-      with:
-        vcpkgDirectory: '${{ github.workspace }}/binding/external/vcpkg'
-        vcpkgJsonGlob: "${{ github.workspace }}/binding/vcpkg.json"
-    - uses: lukka/run-cmake@v10
-      with:
-        cmakeListsTxtPath: '${{ github.workspace }}/binding/CMakeLists.txt'
-        configurePreset: 'vcpkg'
-        buildPreset: 'vcpkg'
-    - if: ${{ startsWith(matrix.os, 'windows') == false }}
-      working-directory: binding
-      run: sudo cmake --install build --strip
-    - if: ${{ startsWith(matrix.os, 'windows') }}
-      working-directory: binding
-      run: cmake --install build --strip
-    - if: ${{ startsWith(matrix.os, 'windows') }}
-      shell: powershell
-      run: |
-        "C:/Program Files (x86)/vowpalwabbit-rs-bindings/bin/" >> $env:GITHUB_PATH
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-    - uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: -vv
-      env:
-        # Required to make it work in some Linux situations
-        LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
-    - uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: -vv
-      env:
-        # Required to make it work in some Linux situations
-        LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup MSVC Developer Command Prompt
+        if: ${{ startsWith(matrix.config.os, 'windows') }}
+        uses: ilammy/msvc-dev-cmd@v1
+      - uses: lukka/get-cmake@latest
+      - uses: lukka/run-vcpkg@main
+        with:
+          vcpkgDirectory: "${{ github.workspace }}/binding/external/vcpkg"
+          vcpkgJsonGlob: "${{ github.workspace }}/binding/vcpkg.json"
+      - uses: lukka/run-cmake@v10
+        with:
+          cmakeListsTxtPath: "${{ github.workspace }}/binding/CMakeLists.txt"
+          configurePreset: "${{ matrix.config.preset }}"
+          buildPreset: "${{ matrix.config.preset }}"
+      - if: ${{ startsWith(matrix.config.os, 'windows') == false }}
+        working-directory: binding
+        run: sudo cmake --install build --strip
+      - if: ${{ startsWith(matrix.config.os, 'windows') }}
+        working-directory: binding
+        run: cmake --install build --strip
+      - if: ${{ startsWith(matrix.config.os, 'windows') }}
+        shell: powershell
+        run: |
+          "C:/Program Files (x86)/vowpalwabbit-rs-bindings/bin/" >> $env:GITHUB_PATH
+          "VW_RS_BINDING_HOME=C:/Program Files (x86)/vowpalwabbit-rs-bindings" >> $env:GITHUB_ENV
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: -vv
+        env:
+          # Required to make it work in some Linux situations
+          LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -vv
+        env:
+          # Required to make it work in some Linux situations
+          LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
