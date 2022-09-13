@@ -32,7 +32,16 @@ jobs:
     - if: ${{ startsWith(matrix.os, 'windows') }}
       working-directory: binding
       run: cmake --install build --strip
+    - if: ${{ startsWith(matrix.os, 'windows') }}
+      run: |
+        echo "C:/Program Files (x86)/vowpalwabbit-rs-bindings/bin/" >> $GITHUB_PATH
     - name: Build Rust
       run: cargo build -vv
+      env:
+        # Required to make it work in some Linux situations
+        LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
     - name: Run tests
       run: cargo test -vv
+      with:
+        # Required to make it work in some Linux situations
+        LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
