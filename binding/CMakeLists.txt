@@ -20,12 +20,16 @@ set(VW_ZLIB_SYS_DEP ON CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(external/vowpal_wabbit EXCLUDE_FROM_ALL)
+set_property(TARGET vw_core PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_property(TARGET vw_io PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_property(TARGET vw_config PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_library(vw_rs_bindings SHARED src/bindings.cc)
 set_target_properties(vw_rs_bindings PROPERTIES PUBLIC_HEADER include/vw_rs_bindings/bindings.hpp)
 target_compile_definitions(vw_rs_bindings PRIVATE VW_RS_BUILDING_DLL)
 target_link_libraries(vw_rs_bindings PRIVATE vw_core vw_config)
 target_include_directories(vw_rs_bindings PUBLIC include)
+set_property(TARGET vw_rs_bindings PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 include(GNUInstallDirs)
 install(
