@@ -13,5 +13,5 @@ The major and minor versions of this crate track that of the native VW library t
 
 ```sh
 cargo install bindgen
-bindgen ../binding/include/vw_rs_bindings/binding.hpp -o src/bindings.rs
+bindgen ../binding/include/vw_rs_bindings/bindings.hpp -o src/generated.rs
 ```

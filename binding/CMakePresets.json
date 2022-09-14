@@ -56,8 +56,28 @@
       }
     },
     {
+      "name": "vcpkg-debug",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": {
+          "type": "STRING",
+          "value": "Debug"
+        }
+      }
+    },
+    {
       "name": "vcpkg-windows",
       "inherits": "vcpkg",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": {
+          "type": "STRING",
+          "value": "x64-windows-static"
+        }
+      }
+    },
+    {
+      "name": "vcpkg-debug-windows",
+      "inherits": "vcpkg-debug",
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": {
           "type": "STRING",
@@ -72,8 +92,16 @@
       "configurePreset": "vcpkg"
     },
     {
+      "name": "vcpkg-debug",
+      "configurePreset": "vcpkg-debug"
+    },
+    {
       "name": "vcpkg-windows",
       "configurePreset": "vcpkg-windows"
+    },
+    {
+      "name": "vcpkg-debug-windows",
+      "configurePreset": "vcpkg-debug-windows"
     }
   ]
 }

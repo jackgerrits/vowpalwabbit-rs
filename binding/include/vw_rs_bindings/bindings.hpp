@@ -25,18 +25,26 @@
 #  endif
 #endif
 
+// For operations which cannot fail under any circumstance (except out of memory) it is acceptable to omit the return code, and error holder.
+// If it is an operation which can fail, it must return an error code and accept the error message parameter for filling with failure info.
+
 extern "C"
 {
   static const int VW_STATUS_SUCCESS = 0;
   static const int VW_STATUS_FAIL = 1;
 
   struct VWWorkspace;
+  struct VWErrorMessage;
 
-  DLL_PUBLIC int VWInitializeWorkspace(const char* const* symbols, int count, struct VWWorkspace** output_handle,
-      const char** error_message) noexcept;
-  DLL_PUBLIC int VWFreeWorkspace(struct VWWorkspace* workspace_handle, const char** error_message) noexcept;
-  DLL_PUBLIC int VWFreeErrorMessage(const char* error_message) noexcept;
+  DLL_PUBLIC struct VWErrorMessage* VWErrorMessageCreate() noexcept;
+  DLL_PUBLIC void VWErrorMessageDelete(struct VWErrorMessage* error_message_handle) noexcept;
+  // If there was no error message set, a nullptr is returned.
+  DLL_PUBLIC const char* VWErrorMessageGetValue(const struct VWErrorMessage* error_message_handle) noexcept;
+  DLL_PUBLIC void VWErrorMessageClearValue(struct VWErrorMessage* error_message_handle) noexcept;
 
-  DLL_PUBLIC int VWRunDriver(struct VWWorkspace* workspace_handle, const char** error_message) noexcept;
+  DLL_PUBLIC int VWWorkspaceInitialize(const char* const* tokens, int count, struct VWWorkspace** output_handle,
+      struct VWErrorMessage* error_message) noexcept;
+  DLL_PUBLIC void VWWorkspaceDelete(struct VWWorkspace* workspace_handle) noexcept;
+
 }
 
