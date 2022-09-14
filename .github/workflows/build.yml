@@ -10,14 +10,21 @@ jobs:
       matrix:
         config:
           [
-            { os: ubuntu-latest, preset: vcpkg-debug },
-            { os: macos-latest, preset: vcpkg-debug },
-            { os: windows-latest, preset: vcpkg-debug-windows },
+            { os: ubuntu-latest, preset: vcpkg },
+            { os: macos-latest, preset: vcpkg },
+            { os: windows-latest, preset: vcpkg-windows },
           ]
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
+      - if: ${{ startsWith(matrix.config.os, 'windows') }}
+        shell: cmd
+        run: echo set(VCPKG_BUILD_TYPE release) >> binding/vcpkg/triplets/x64-windows-static.cmake
+      - if: ${{ startsWith(matrix.config.os, 'ubuntu') }}
+        run: echo "set(VCPKG_BUILD_TYPE release)" >> binding/vcpkg/triplets/x64-linux.cmake
+      - if: ${{ startsWith(matrix.config.os, 'macos') }}
+        run: echo "set(VCPKG_BUILD_TYPE release)" >> binding/vcpkg/triplets/x64-osx.cmake
       - name: Setup MSVC Developer Command Prompt
         if: ${{ startsWith(matrix.config.os, 'windows') }}
         uses: ilammy/msvc-dev-cmd@v1

@@ -15,7 +15,7 @@ project(vowpalwabbit-rs-bindings LANGUAGES CXX)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-find_package(vowpalwabbit REQUIRED)
+find_package(VowpalWabbit CONFIG REQUIRED)
 
 add_library(vw_rs_bindings SHARED src/bindings.cc)
 set_target_properties(vw_rs_bindings PROPERTIES PUBLIC_HEADER include/vw_rs_bindings/bindings.hpp)
