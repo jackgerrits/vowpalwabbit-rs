@@ -13,7 +13,7 @@ mod tests {
             let error_message = VWErrorMessageCreate();
             let mut workspace: *mut VWWorkspace = std::ptr::null_mut();
             let res = VWWorkspaceInitialize(std::ptr::null(), 0, &mut workspace, error_message);
-            assert!(res == 0);
+            assert!(res == VW_STATUS_SUCCESS);
             VWWorkspaceDelete(workspace);
         }
     }
@@ -35,7 +35,7 @@ mod tests {
                 &mut workspace,
                 error_message,
             );
-            assert!(res == 1);
+            assert!(res == VW_STATUS_FAIL);
         }
     }
 

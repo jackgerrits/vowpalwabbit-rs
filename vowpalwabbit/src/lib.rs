@@ -35,7 +35,7 @@ impl Workspace {
                 error_message_holder.get_mut_ptr(),
             );
 
-            if res != 0 {
+            if res != VW_STATUS_SUCCESS {
                 match error_message_holder.get() {
                     Some(message) => Err(VWError::Failure(message)),
                     None => Err(VWError::Failure("Unknown".to_string())),
@@ -45,12 +45,20 @@ impl Workspace {
             }
         }
     }
+
+    fn get_ptr(&self) -> *const vowpalwabbit_sys::VWWorkspace {
+        self.workspace
+    }
+
+    fn get_mut_ptr(&mut self) -> *mut vowpalwabbit_sys::VWWorkspace {
+        self.workspace
+    }
 }
 
 impl Drop for Workspace {
     fn drop(&mut self) {
         unsafe {
-            vowpalwabbit_sys::VWWorkspaceDelete(self.workspace);
+            vowpalwabbit_sys::VWWorkspaceDelete(self.get_mut_ptr());
         }
     }
 }
