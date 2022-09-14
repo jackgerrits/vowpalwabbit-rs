@@ -64,3 +64,6 @@ jobs:
         env:
           # Required to make it work in some Linux situations
           LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clean
