@@ -4,11 +4,19 @@ pub const VW_STATUS_SUCCESS: ::std::os::raw::c_int = 0;
 pub const VW_STATUS_FAIL: ::std::os::raw::c_int = 1;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+#[must_use]
 pub struct VWWorkspace {
     _unused: [u8; 0],
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+#[must_use]
+pub struct VWExample {
+    _unused: [u8; 0],
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+#[must_use]
 pub struct VWErrorMessage {
     _unused: [u8; 0],
 }
@@ -27,6 +35,7 @@ extern "C" {
     pub fn VWErrorMessageClearValue(error_message_handle: *mut VWErrorMessage);
 }
 extern "C" {
+    #[must_use]
     pub fn VWWorkspaceInitialize(
         tokens: *const *const ::std::os::raw::c_char,
         count: ::std::os::raw::c_int,
@@ -36,4 +45,34 @@ extern "C" {
 }
 extern "C" {
     pub fn VWWorkspaceDelete(workspace_handle: *mut VWWorkspace);
+}
+extern "C" {
+    #[must_use]
+    pub fn VWWorkspaceLearn(
+        workspace_handle: *mut VWWorkspace,
+        example_handle: *mut VWExample,
+        error_message_handle: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[must_use]
+    pub fn VWWorkspaceGetPooledExample(
+        workspace_handle: *mut VWWorkspace,
+        output_handle: *mut *mut VWExample,
+        error_message_handle: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[must_use]
+    pub fn VWWorkspaceReturnPooledExample(
+        workspace_handle: *mut VWWorkspace,
+        example_handle: *mut VWExample,
+        error_message_handle: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn VWExampleCreate() -> *mut VWExample;
+}
+extern "C" {
+    pub fn VWExampleDelete(example_handle: *mut VWExample);
 }

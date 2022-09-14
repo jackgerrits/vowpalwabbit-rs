@@ -34,6 +34,7 @@ extern "C"
   static const int VW_STATUS_FAIL = 1;
 
   struct VWWorkspace;
+  struct VWExample;
   struct VWErrorMessage;
 
   DLL_PUBLIC struct VWErrorMessage* VWErrorMessageCreate() noexcept;
@@ -46,5 +47,12 @@ extern "C"
       struct VWErrorMessage* error_message) noexcept;
   DLL_PUBLIC void VWWorkspaceDelete(struct VWWorkspace* workspace_handle) noexcept;
 
+  DLL_PUBLIC int VWWorkspaceLearn(struct VWWorkspace* workspace_handle, struct VWExample* example_handle, struct VWErrorMessage* error_message_handle) noexcept;
+
+  DLL_PUBLIC int VWWorkspaceGetPooledExample(struct VWWorkspace* workspace_handle, struct VWExample** output_handle, struct VWErrorMessage* error_message_handle) noexcept;
+  DLL_PUBLIC int VWWorkspaceReturnPooledExample(struct VWWorkspace* workspace_handle, struct VWExample* example_handle, struct VWErrorMessage* error_message_handle) noexcept;
+
+  DLL_PUBLIC struct VWExample* VWExampleCreate() noexcept;
+  DLL_PUBLIC void VWExampleDelete(struct VWExample* example_handle) noexcept;
 }
 

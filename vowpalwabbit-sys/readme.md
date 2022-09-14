@@ -12,5 +12,6 @@ When the DLL interface changes bindgen needs to be run to regenerate [`src/gener
 
 ```sh
 cargo install bindgen
-bindgen ../binding/include/vw_rs_bindings/bindings.hpp -o src/generated.rs
+# The following allows rust to require the error codes be read
+bindgen ../binding/include/vw_rs_bindings/bindings.hpp -o src/generated.rs --must-use-type int
 ```

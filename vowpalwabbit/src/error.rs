@@ -50,6 +50,19 @@ impl Drop for ErrorMessageHolder {
     }
 }
 
+macro_rules! check_result {
+    ($a:expr,$b:expr) => {{
+        if $a != VW_STATUS_SUCCESS {
+            return match $b.get() {
+                Some(message) => Err(VWError::Failure(message)),
+                None => Err(VWError::Failure("Unknown".to_string())),
+            };
+        }
+    }};
+}
+
+pub(crate) use check_result;
+
 #[cfg(test)]
 mod tests {
     use super::ErrorMessageHolder;

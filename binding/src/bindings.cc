@@ -75,12 +75,55 @@ DLL_PUBLIC int VWWorkspaceInitialize(const char* const* tokens, int count,
   std::vector<std::string> args(tokens, tokens + count);
   auto options = VW::make_unique<VW::config::options_cli>(args);
   auto workspace = VW::initialize_experimental(std::move(options));
-  *output_handle = reinterpret_cast<VWWorkspace* >(workspace.release());
+  *output_handle = reinterpret_cast<VWWorkspace*>(workspace.release());
   return VW_STATUS_SUCCESS;
 }
 CATCH_RETURN_EXCEPTION
 
 DLL_PUBLIC void VWWorkspaceDelete(VWWorkspace* workspace_handle) noexcept {
-  auto* workspace = reinterpret_cast<VW::workspace* >(workspace_handle);
+  auto* workspace = reinterpret_cast<VW::workspace*>(workspace_handle);
   delete workspace;
+}
+
+DLL_PUBLIC int VWWorkspaceLearn(VWWorkspace* workspace_handle, struct VWExample* example_handle, VWErrorMessage* error_message_handle) noexcept
+{
+  assert(workspace_handle != nullptr);
+  assert(example_handle != nullptr);
+  auto* workspace = reinterpret_cast<VW::workspace*>(workspace_handle);
+  auto* ex = reinterpret_cast<VW::example*>(example_handle);
+
+  workspace->learn(*ex);
+  return VW_STATUS_SUCCESS;
+}
+
+DLL_PUBLIC int VWWorkspaceGetPooledExample(struct VWWorkspace* workspace_handle, VWExample** output_handle, VWErrorMessage* error_message_handle) noexcept
+{
+  assert(workspace_handle != nullptr);
+  assert(output_handle != nullptr);
+  auto* workspace = reinterpret_cast<VW::workspace* >(workspace_handle);
+
+  *output_handle = reinterpret_cast<VWExample*>(new_unused_example(*workspace));
+  return VW_STATUS_SUCCESS;
+}
+
+DLL_PUBLIC int VWWorkspaceReturnPooledExample(struct VWWorkspace* workspace_handle, VWExample* example_handle, VWErrorMessage* error_message_handle) noexcept
+{
+  assert(workspace_handle != nullptr);
+  assert(example_handle != nullptr);
+  auto* workspace = reinterpret_cast<VW::workspace* >(workspace_handle);
+  auto* ex = reinterpret_cast<VW::example*>(example_handle);
+  empty_example(*workspace, *ex);
+  workspace->example_parser->example_pool.return_object(ex);
+  return VW_STATUS_SUCCESS;
+}
+
+DLL_PUBLIC struct VWExample* VWExampleCreate() noexcept
+{
+  return reinterpret_cast<VWExample*>(new VW::example);
+}
+
+DLL_PUBLIC void VWExampleDelete(struct VWExample* example_handle) noexcept
+{
+  auto* ex = reinterpret_cast<VW::example*>(example_handle);
+  delete ex;
 }
