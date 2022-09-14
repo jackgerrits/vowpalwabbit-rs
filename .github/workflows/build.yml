@@ -47,6 +47,8 @@ jobs:
       - if: ${{ startsWith(matrix.config.os, 'windows') }}
         shell: powershell
         run: |
+          Get-ChildItem binding | Measure-Object -Property Length -sum
+          Get-ChildItem binding/build | Measure-Object -Property Length -sum
           "C:/Program Files (x86)/vowpalwabbit-rs-bindings/bin/" >> $env:GITHUB_PATH
           "VW_RS_BINDING_HOME=C:/Program Files (x86)/vowpalwabbit-rs-bindings" >> $env:GITHUB_ENV
       - uses: actions-rs/toolchain@v1
