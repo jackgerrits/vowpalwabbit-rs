@@ -1,0 +1,21 @@
+{
+    "name": "vowpalwabbit",
+    "version": "9.3.0",
+    "dependencies": [
+        "boost-math",
+        "flatbuffers",
+        "fmt",
+        "rapidjson",
+        "spdlog",
+        "string-view-lite",
+        "zlib",
+        {
+            "name": "vcpkg-cmake",
+            "host": true
+        },
+        {
+            "name": "vcpkg-cmake-config",
+            "host": true
+        }
+    ]
+}

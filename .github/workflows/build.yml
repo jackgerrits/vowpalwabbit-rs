@@ -24,7 +24,7 @@ jobs:
       - uses: lukka/get-cmake@latest
       - uses: lukka/run-vcpkg@main
         with:
-          vcpkgDirectory: "${{ github.workspace }}/binding/external/vcpkg"
+          vcpkgDirectory: "${{ github.workspace }}/binding/vcpkg"
           vcpkgJsonGlob: "${{ github.workspace }}/binding/vcpkg.json"
       - uses: lukka/run-cmake@v10
         with:
