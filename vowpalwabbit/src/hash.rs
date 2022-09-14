@@ -57,37 +57,42 @@ pub fn uniform_hash(key: &[u8], seed: u64) -> u64 {
     u64::from(fmix(h1))
 }
 
-// Test truth values calculated using C++ implementation.
-#[test]
-fn fmix_tests() {
-    assert_eq!(fmix(0), 0);
-    assert_eq!(fmix(1), 1364076727);
-    assert_eq!(fmix(5), 3423425485);
-    assert_eq!(fmix(2147483647), 4190899880);
-    assert_eq!(fmix(4294967295), 2180083513);
-}
+#[cfg(test)]
+mod tests {
+    use crate::hash::{fmix, uniform_hash};
 
-#[test]
-fn hash_tests_zero_seed() {
-    assert_eq!(uniform_hash(b"t", 0), 3397902157);
-    assert_eq!(uniform_hash(b"te", 0), 3988319771);
-    assert_eq!(uniform_hash(b"tes", 0), 196677210);
-    assert_eq!(uniform_hash(b"test", 0), 3127628307);
-    assert_eq!(uniform_hash(b"tested", 0), 2247989476);
-    assert_eq!(
-        uniform_hash(b"8hv20cjwicnsj vw m000'.'.][][]...!!@3", 0),
-        4212741639
-    );
-}
+    // Test truth values calculated using C++ implementation.
+    #[test]
+    fn fmix_tests() {
+        assert_eq!(fmix(0), 0);
+        assert_eq!(fmix(1), 1364076727);
+        assert_eq!(fmix(5), 3423425485);
+        assert_eq!(fmix(2147483647), 4190899880);
+        assert_eq!(fmix(4294967295), 2180083513);
+    }
 
-#[test]
-fn hash_tests_nonzero_seed() {
-    assert_eq!(uniform_hash(b"t", 25436347), 960607349);
-    assert_eq!(uniform_hash(b"te", 25436347), 2834341637);
-    assert_eq!(uniform_hash(b"tes", 25436347), 1163171263);
-    assert_eq!(uniform_hash(b"tested", 25436347), 3592599130);
-    assert_eq!(
-        uniform_hash(b"8hv20cjwicnsj vw m000'.'.][][]...!!@3", 25436347),
-        2503360452
-    );
+    #[test]
+    fn hash_tests_zero_seed() {
+        assert_eq!(uniform_hash(b"t", 0), 3397902157);
+        assert_eq!(uniform_hash(b"te", 0), 3988319771);
+        assert_eq!(uniform_hash(b"tes", 0), 196677210);
+        assert_eq!(uniform_hash(b"test", 0), 3127628307);
+        assert_eq!(uniform_hash(b"tested", 0), 2247989476);
+        assert_eq!(
+            uniform_hash(b"8hv20cjwicnsj vw m000'.'.][][]...!!@3", 0),
+            4212741639
+        );
+    }
+
+    #[test]
+    fn hash_tests_nonzero_seed() {
+        assert_eq!(uniform_hash(b"t", 25436347), 960607349);
+        assert_eq!(uniform_hash(b"te", 25436347), 2834341637);
+        assert_eq!(uniform_hash(b"tes", 25436347), 1163171263);
+        assert_eq!(uniform_hash(b"tested", 25436347), 3592599130);
+        assert_eq!(
+            uniform_hash(b"8hv20cjwicnsj vw m000'.'.][][]...!!@3", 25436347),
+            2503360452
+        );
+    }
 }
