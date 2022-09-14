@@ -9,6 +9,10 @@ on:
     branches:
       - '*'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ${{ matrix.config.os }}
@@ -55,21 +59,21 @@ jobs:
           Remove-Item -LiteralPath "vcpkg\buildtrees" -Force -Recurse
           Remove-Item -LiteralPath "vcpkg\packages" -Force -Recurse
           Remove-Item -LiteralPath "build/vcpkg_installed" -Force -Recurse
-      - uses: actions-rs/toolchain@v1
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: actions-rs/cargo@v1
+      - name: cargo build
+        uses: actions-rs/cargo@v1
         with:
           command: build
         env:
           # Required to make it work in some Linux situations
           LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
-      - uses: actions-rs/cargo@v1
+      - name: cargo test
+        uses: actions-rs/cargo@v1
         with:
           command: test
         env:
           # Required to make it work in some Linux situations
           LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clean
