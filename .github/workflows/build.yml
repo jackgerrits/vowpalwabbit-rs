@@ -40,17 +40,21 @@ jobs:
           buildPreset: "${{ matrix.config.preset }}"
       - if: ${{ startsWith(matrix.config.os, 'windows') == false }}
         working-directory: binding
-        run: sudo cmake --install build --strip
+        run: |
+          sudo cmake --install build --strip
+          rm -rf vcpkg/buildtrees
+          rm -rf vcpkg/packages
+          rm -rf build/vcpkg_installed
       - if: ${{ startsWith(matrix.config.os, 'windows') }}
         working-directory: binding
-        run: cmake --install build --strip
-      - if: ${{ startsWith(matrix.config.os, 'windows') }}
         shell: powershell
         run: |
-          Get-ChildItem binding | Measure-Object -Property Length -sum
-          Get-ChildItem binding/build | Measure-Object -Property Length -sum
+          cmake --install build --strip
           "C:/Program Files (x86)/vowpalwabbit-rs-bindings/bin/" >> $env:GITHUB_PATH
           "VW_RS_BINDING_HOME=C:/Program Files (x86)/vowpalwabbit-rs-bindings" >> $env:GITHUB_ENV
+          Remove-Item -LiteralPath "vcpkg\buildtrees" -Force -Recurse
+          Remove-Item -LiteralPath "vcpkg\packages" -Force -Recurse
+          Remove-Item -LiteralPath "build/vcpkg_installed" -Force -Recurse
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
