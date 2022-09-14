@@ -17,9 +17,9 @@ jobs:
       matrix:
         config:
           [
-            { os: ubuntu-latest, preset: vcpkg-debug },
-            { os: macos-latest, preset: vcpkg-debug },
-            { os: windows-latest, preset: vcpkg-debug-windows },
+            { os: ubuntu-latest, preset: vcpkg },
+            { os: macos-latest, preset: vcpkg },
+            { os: windows-latest, preset: vcpkg-windows },
           ]
     steps:
       - uses: actions/checkout@v2
@@ -31,7 +31,7 @@ jobs:
       - uses: lukka/get-cmake@latest
       - uses: lukka/run-vcpkg@main
         with:
-          vcpkgDirectory: "${{ github.workspace }}/binding/external/vcpkg"
+          vcpkgDirectory: "${{ github.workspace }}/binding/vcpkg"
           vcpkgJsonGlob: "binding/vcpkg.json"
       - uses: lukka/run-cmake@v10
         with:

@@ -13,35 +13,7 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": {
           "type": "FILEPATH",
-          "value": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        },
-        "BUILD_TESTING": {
-          "type": "BOOL",
-          "value": "ON"
-        },
-        "RAPIDJSON_SYS_DEP": {
-          "type": "BOOL",
-          "value": "ON"
-        },
-        "FMT_SYS_DEP": {
-          "type": "BOOL",
-          "value": "ON"
-        },
-        "SPDLOG_SYS_DEP": {
-          "type": "BOOL",
-          "value": "ON"
-        },
-        "VW_BOOST_MATH_SYS_DEP": {
-          "type": "BOOL",
-          "value": "ON"
-        },
-        "VW_ZLIB_SYS_DEP": {
-          "type": "BOOL",
-          "value": "ON"
-        },
-        "VW_GTEST_SYS_DEP": {
-          "type": "BOOL",
-          "value": "ON"
+          "value": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake"
         }
       }
     },
