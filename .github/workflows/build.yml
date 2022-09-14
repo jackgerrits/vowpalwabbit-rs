@@ -10,9 +10,9 @@ jobs:
       matrix:
         config:
           [
-            { os: ubuntu-latest, preset: vcpkg },
-            { os: macos-latest, preset: vcpkg },
-            { os: windows-latest, preset: vcpkg-windows },
+            { os: ubuntu-latest, preset: vcpkg-debug },
+            { os: macos-latest, preset: vcpkg-debug },
+            { os: windows-latest, preset: vcpkg-debug-windows },
           ]
     steps:
       - uses: actions/checkout@v2
