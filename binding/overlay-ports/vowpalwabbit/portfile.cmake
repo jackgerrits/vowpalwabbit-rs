@@ -29,4 +29,10 @@ file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share
 
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/VowpalWabbit/)
 
-vcpkg_copy_tools(TOOL_NAMES vw spanning_tree AUTO_CLEAN)
+# hack: This is only build on non-windows. For now just add this.
+set(active_interactor_bin "")
+if(NOT WIN32)
+    set(active_interactor_bin "active_interactor")
+endif()
+
+vcpkg_copy_tools(TOOL_NAMES vw spanning_tree ${active_interactor_bin} AUTO_CLEAN)
