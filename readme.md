@@ -1,7 +1,7 @@
 # VowpalWabbit-rs
 [![build](https://github.com/jackgerrits/vowpalwabbit-rs/workflows/build/badge.svg?branch=master)](https://github.com/jackgerrits/vowpalwabbit-rs/actions?query=workflow%3Abuild)
 
-| <!-- -->    | <!-- -->    |
+| Crate    | <!-- -->    |
 |-------------|-------------|
 | `vowpalwabbit-sys` | [![Crates.io](https://img.shields.io/crates/v/vowpalwabbit-sys.svg)](https://crates.io/crates/vowpalwabbit-sys) [![Docs](https://docs.rs/vowpalwabbit-sys/badge.svg)](https://docs.rs/vowpalwabbit-sys) |
 | `vowpalwabbit` | ... |
@@ -27,8 +27,7 @@ The `VowpalWabbit-sys` crate searches for a library called `vw_rs_bindings`. Thi
 #### Ubuntu
 
 ```sh
-git submodule update --init binding/external/vowpal_wabbit
-git submodule update --init binding/external/vcpkg
+git submodule update --init
 cd binding
 cmake --preset=vcpkg
 cmake --build --preset=vcpkg
@@ -37,8 +36,7 @@ cmake --build --preset=vcpkg
 #### MacOS
 
 ```sh
-git submodule update --init binding/external/vowpal_wabbit
-git submodule update --init binding/external/vcpkg
+git submodule update --init
 cd binding
 cmake --preset=vcpkg
 cmake --build --preset=vcpkg
@@ -49,8 +47,7 @@ cmake --build --preset=vcpkg
 The following MUST be run in an x64 developer tools prompt. Not using 64 bit will cause issues later when the DLL is loaded.
 
 ```powershell
-git submodule update --init binding/external/vowpal_wabbit
-git submodule update --init binding/external/vcpkg
+git submodule update --init
 cd binding
 cmake --preset=vcpkg-windows
 cmake --build --preset=vcpkg-windows
