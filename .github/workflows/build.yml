@@ -29,7 +29,7 @@ jobs:
         if: ${{ startsWith(matrix.config.os, 'windows') }}
         uses: ilammy/msvc-dev-cmd@v1
       - uses: lukka/get-cmake@latest
-      - uses: lukka/run-vcpkg@main
+      - uses: lukka/run-vcpkg@v10.4
         with:
           vcpkgDirectory: "${{ github.workspace }}/binding/vcpkg"
           vcpkgJsonGlob: "binding/vcpkg.json"
@@ -55,14 +55,12 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: -vv
         env:
           # Required to make it work in some Linux situations
           LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -vv
         env:
           # Required to make it work in some Linux situations
           LD_LIBRARY_PATH: /lib:/usr/lib:/usr/local/lib
