@@ -25,7 +25,7 @@ jobs:
       - uses: lukka/run-vcpkg@main
         with:
           vcpkgDirectory: "${{ github.workspace }}/binding/external/vcpkg"
-          vcpkgJsonGlob: "${{ github.workspace }}/binding/vcpkg.json"
+          vcpkgJsonGlob: "binding/vcpkg.json"
       - uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: "${{ github.workspace }}/binding/CMakeLists.txt"
