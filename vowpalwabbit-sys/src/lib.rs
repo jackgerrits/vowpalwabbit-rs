@@ -1,10 +1,9 @@
 include!("generated.rs");
 
-
 #[cfg(test)]
 mod tests {
-    use std::os::raw::c_int;
     use std::ffi::CString;
+    use std::os::raw::c_int;
 
     use super::*;
 
@@ -13,12 +12,7 @@ mod tests {
         unsafe {
             let error_message = VWErrorMessageCreate();
             let mut workspace: *mut VWWorkspace = std::ptr::null_mut();
-            let res = VWWorkspaceInitialize(
-                std::ptr::null(),
-                0,
-                &mut workspace,
-                error_message,
-            );
+            let res = VWWorkspaceInitialize(std::ptr::null(), 0, &mut workspace, error_message);
             assert!(res == 0);
             VWWorkspaceDelete(workspace);
         }
@@ -44,7 +38,6 @@ mod tests {
             assert!(res == 1);
         }
     }
-
 
     #[test]
     fn test_create_and_delete_error_message() {
