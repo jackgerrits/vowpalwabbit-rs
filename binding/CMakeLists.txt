@@ -10,7 +10,6 @@ set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
 set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_LIST_DIR}/overlay-ports")
 
 cmake_policy(SET CMP0091 NEW)
-
 project(vowpalwabbit-rs-bindings LANGUAGES CXX)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
