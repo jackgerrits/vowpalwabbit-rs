@@ -3,7 +3,15 @@ pub struct Example {
 }
 
 impl Example {
-    pub(crate) fn get_ptr(&self) -> *const vowpalwabbit_sys::VWExample {
+    pub fn new() -> Example {
+        unsafe {
+            Example {
+                example: vowpalwabbit_sys::VWExampleCreate(),
+            }
+        }
+    }
+
+    fn get_ptr(&self) -> *const vowpalwabbit_sys::VWExample {
         self.example
     }
 
@@ -17,5 +25,15 @@ impl Drop for Example {
         unsafe {
             vowpalwabbit_sys::VWExampleDelete(self.get_mut_ptr());
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Example;
+
+    #[test]
+    fn create_example() {
+        let _ = Example::new();
     }
 }

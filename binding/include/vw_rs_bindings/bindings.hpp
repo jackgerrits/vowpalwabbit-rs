@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #if defined _WIN32 || defined __CYGWIN__
 #  ifdef VW_RS_BUILDING_DLL
 #    ifdef __GNUC__
@@ -25,8 +27,9 @@
 #  endif
 #endif
 
-// For operations which cannot fail under any circumstance (except out of memory) it is acceptable to omit the return code, and error holder.
-// If it is an operation which can fail, it must return an error code and accept the error message parameter for filling with failure info.
+// For operations which cannot fail under any circumstance (except out of memory) it is acceptable to omit the return
+// code, and error holder. If it is an operation which can fail, it must return an error code and accept the error
+// message parameter for filling with failure info.
 
 extern "C"
 {
@@ -36,23 +39,32 @@ extern "C"
   struct VWWorkspace;
   struct VWExample;
   struct VWErrorMessage;
+  struct VWMultiEx;
 
-  DLL_PUBLIC struct VWErrorMessage* VWErrorMessageCreate() noexcept;
-  DLL_PUBLIC void VWErrorMessageDelete(struct VWErrorMessage* error_message_handle) noexcept;
+  DLL_PUBLIC VWErrorMessage* VWErrorMessageCreate() noexcept;
+  DLL_PUBLIC void VWErrorMessageDelete(VWErrorMessage* error_message_handle) noexcept;
   // If there was no error message set, a nullptr is returned.
-  DLL_PUBLIC const char* VWErrorMessageGetValue(const struct VWErrorMessage* error_message_handle) noexcept;
-  DLL_PUBLIC void VWErrorMessageClearValue(struct VWErrorMessage* error_message_handle) noexcept;
+  DLL_PUBLIC const char* VWErrorMessageGetValue(const VWErrorMessage* error_message_handle) noexcept;
+  DLL_PUBLIC void VWErrorMessageClearValue(VWErrorMessage* error_message_handle) noexcept;
 
-  DLL_PUBLIC int VWWorkspaceInitialize(const char* const* tokens, int count, struct VWWorkspace** output_handle,
-      struct VWErrorMessage* error_message) noexcept;
-  DLL_PUBLIC void VWWorkspaceDelete(struct VWWorkspace* workspace_handle) noexcept;
+  DLL_PUBLIC int VWWorkspaceInitialize(
+      const char* const* tokens, int count, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept;
+  DLL_PUBLIC void VWWorkspaceDelete(VWWorkspace* workspace_handle) noexcept;
 
-  DLL_PUBLIC int VWWorkspaceLearn(struct VWWorkspace* workspace_handle, struct VWExample* example_handle, struct VWErrorMessage* error_message_handle) noexcept;
+  DLL_PUBLIC int VWWorkspaceLearn(
+      VWWorkspace* workspace_handle, VWExample* example_handle, VWErrorMessage* error_message_handle) noexcept;
+  DLL_PUBLIC int VWWorkspaceParseDSJson(VWWorkspace* workspace_handle, const char* json_string, size_t length,
+      VWMultiEx* output_handle, VWErrorMessage* error_message_handle) noexcept;
 
-  DLL_PUBLIC int VWWorkspaceGetPooledExample(struct VWWorkspace* workspace_handle, struct VWExample** output_handle, struct VWErrorMessage* error_message_handle) noexcept;
-  DLL_PUBLIC int VWWorkspaceReturnPooledExample(struct VWWorkspace* workspace_handle, struct VWExample* example_handle, struct VWErrorMessage* error_message_handle) noexcept;
+  DLL_PUBLIC VWExample* VWExampleCreate() noexcept;
+  DLL_PUBLIC void VWExampleDelete(VWExample* example_handle) noexcept;
 
-  DLL_PUBLIC struct VWExample* VWExampleCreate() noexcept;
-  DLL_PUBLIC void VWExampleDelete(struct VWExample* example_handle) noexcept;
+  DLL_PUBLIC VWMultiEx* VWMultiExCreate() noexcept;
+  // If any examples are held in the container they will be deleted too.
+  DLL_PUBLIC void VWMultiExDelete(VWMultiEx* example_handle) noexcept;
+  DLL_PUBLIC size_t VWMultiGetLength(VWMultiEx* example_handle) noexcept;
+  DLL_PUBLIC int VWMultiGetExample(
+      VWMultiEx* example_handle, VWExample** examples, size_t index, VWErrorMessage* error_message_handle) noexcept;
+  // Does not delete the contained examples.
+  DLL_PUBLIC void VWMultiClear(VWMultiEx* example_handle) noexcept;
 }
-

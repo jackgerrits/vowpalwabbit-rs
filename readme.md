@@ -58,7 +58,8 @@ cmake --build --preset=vcpkg-windows
 Set environment variable `VW_RS_BINDING_HOME` to the `binding/build` directory.
 
 On Windows add the `binding/build` directory to the `path`.
-On MacOS or Ubuntu set `LD_LIBRARY_PATH` to `binding/build`.
+On Ubuntu set `LD_LIBRARY_PATH` to `binding/build`.
+On MacOS set `DYLD_FALLBACK_LIBRARY_PATH` to `binding/build`.
 
 ### Install (optional)
 

@@ -4,3 +4,4 @@ Cargo.lock
 build
 .cache
 target/
+.DS_Store
