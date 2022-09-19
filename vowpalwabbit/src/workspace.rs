@@ -232,7 +232,7 @@ impl Drop for Workspace {
 
 #[cfg(test)]
 mod tests {
-    use crate::{pool::ExamplePool, workspace::Workspace, prediction::Prediction};
+    use crate::{pool::ExamplePool, prediction::Prediction, workspace::Workspace};
 
     #[test]
     fn create_workspace() {
@@ -279,8 +279,7 @@ mod tests {
         workspace.learn_multi_example(&mut examples).unwrap();
         workspace.learn_multi_example(&mut examples).unwrap();
         assert_eq!(examples.len(), 5);
-        match workspace.predict_multi_example(&mut examples).unwrap()
-        {
+        match workspace.predict_multi_example(&mut examples).unwrap() {
             Prediction::ActionScores { values } => assert_eq!(values.len(), 4),
         }
         pool.return_multi_example(examples);
