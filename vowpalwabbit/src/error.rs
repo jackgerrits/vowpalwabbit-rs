@@ -50,7 +50,7 @@ impl Drop for ErrorMessageHolder {
     }
 }
 
-macro_rules! check_result {
+macro_rules! check_return {
     ($a:expr,$b:expr) => {{
         if $a != VW_STATUS_SUCCESS {
             return match $b.get() {
@@ -61,7 +61,19 @@ macro_rules! check_result {
     }};
 }
 
-pub(crate) use check_result;
+macro_rules! check_panic {
+    ($a:expr,$b:expr) => {{
+        if $a != VW_STATUS_SUCCESS {
+            match $b.get() {
+                Some(message) => panic!("{}", message),
+                None => panic!("Unknown failure"),
+            };
+        }
+    }};
+}
+
+pub(crate) use check_panic;
+pub(crate) use check_return;
 
 #[cfg(test)]
 mod tests {

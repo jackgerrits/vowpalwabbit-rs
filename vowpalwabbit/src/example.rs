@@ -11,12 +11,22 @@ impl Example {
         }
     }
 
-    fn get_ptr(&self) -> *const vowpalwabbit_sys::VWExample {
-        self.example
-    }
+    // fn get_ptr(&self) -> *const vowpalwabbit_sys::VWExample {
+    //     self.example
+    // }
 
     pub(crate) fn get_mut_ptr(&mut self) -> *mut vowpalwabbit_sys::VWExample {
         self.example
+    }
+
+    pub(crate) fn release(self) {
+        std::mem::forget(self)
+    }
+}
+
+impl Default for Example {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
