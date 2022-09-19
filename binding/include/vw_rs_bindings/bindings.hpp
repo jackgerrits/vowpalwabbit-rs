@@ -37,6 +37,8 @@ extern "C"
   static const int VW_STATUS_SUCCESS = 0;
   static const int VW_STATUS_FAIL = 1;
 
+  // Unfortunately a copy paste of the enum since bringing in the header is not
+  // feasible and using externs would mean these are no longer constants
   enum class override_prediction_type_t : uint32_t
   {
     scalar,
