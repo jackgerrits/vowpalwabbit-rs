@@ -42,7 +42,7 @@ unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
         check_panic!(res, error_message_holder);
         result.push((action.assume_init(), value.assume_init()));
     }
-
+    vowpalwabbit_sys::VWActionScoresDelete(pred_ptr as *mut VWActionScores);
     Prediction::ActionScores { values: result }
 }
 
