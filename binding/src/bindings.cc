@@ -55,10 +55,10 @@ void* create_prediction(const polyprediction& prediction, VW::prediction_type_t 
   switch (pred_type)
   {
     case VW::prediction_type_t::scalar:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::scalar is not supported")
       break;
     case VW::prediction_type_t::scalars:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::scalars is not supported")
       break;
     case VW::prediction_type_t::action_scores:
     {
@@ -68,36 +68,38 @@ void* create_prediction(const polyprediction& prediction, VW::prediction_type_t 
     }
     break;
     case VW::prediction_type_t::pdf:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::pdf is not supported")
       break;
     case VW::prediction_type_t::action_probs:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::action_probs is not supported")
       break;
     case VW::prediction_type_t::multiclass:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::multiclass is not supported")
       break;
     case VW::prediction_type_t::multilabels:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::multilabels is not supported")
       break;
     case VW::prediction_type_t::prob:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::prob is not supported")
       break;
     case VW::prediction_type_t::multiclassprobs:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::multiclassprobs is not supported")
       break;
     case VW::prediction_type_t::decision_probs:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::decision_probs is not supported")
       break;
     case VW::prediction_type_t::action_pdf_value:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::action_pdf_value is not supported")
       break;
     case VW::prediction_type_t::active_multiclass:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::active_multiclass is not supported")
       break;
     case VW::prediction_type_t::nopred:
-      THROW("not supported")
+      THROW("VW::prediction_type_t::nopred is not supported")
       break;
   }
+
+  THROW("Unknown not supported")
 }
 
 VWErrorMessage* VWErrorMessageCreate() noexcept { return new VWErrorMessage; }
