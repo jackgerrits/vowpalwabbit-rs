@@ -5,7 +5,7 @@ use std::{
     os::raw::{c_int, c_void},
 };
 
-use vowpalwabbit_sys::{VWActionScores, VW_STATUS_SUCCESS};
+use vowpalwabbit_sys::{VWActionScores, VW_STATUS_SUCCESS, size_t};
 
 use crate::{
     error::{check_panic, check_return, ErrorMessageHolder, VWError},
@@ -20,7 +20,7 @@ pub struct Workspace {
 }
 
 unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
-    let mut length = MaybeUninit::<u64>::zeroed();
+    let mut length = MaybeUninit::<size_t>::zeroed();
     let mut error_message_holder = ErrorMessageHolder::new();
     vowpalwabbit_sys::VWActionScoresGetLength(
         pred_ptr as *const VWActionScores,
