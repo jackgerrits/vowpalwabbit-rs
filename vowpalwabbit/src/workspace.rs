@@ -232,7 +232,7 @@ impl Drop for Workspace {
 
 #[cfg(test)]
 mod tests {
-    use crate::{pool::ExamplePool, workspace::Workspace};
+    use crate::{pool::ExamplePool, workspace::Workspace, prediction::Prediction};
 
     #[test]
     fn create_workspace() {
@@ -254,6 +254,7 @@ mod tests {
         let workspace = Workspace::new(&args).unwrap();
         let pool = ExamplePool::new();
         let mut examples = workspace.parse_decision_service_json(r#"{"_label_cost":-0.0,"_label_probability":0.05000000074505806,"_label_Action":4,"_labelIndex":3,"o":[{"v":0.0,"EventId":"13118d9b4c114f8485d9dec417e3aefe","ActionTaken":false}],"Timestamp":"2021-02-04T16:31:29.2460000Z","Version":"1","EventId":"13118d9b4c114f8485d9dec417e3aefe","a":[4,2,1,3],"c":{"FromUrl":[{"timeofday":"Afternoon","weather":"Sunny","name":"Cathy"}],"_multi":[{"_tag":"Cappucino","i":{"constant":1,"id":"Cappucino"},"j":[{"type":"hot","origin":"kenya","organic":"yes","roast":"dark"}]},{"_tag":"Cold brew","i":{"constant":1,"id":"Cold brew"},"j":[{"type":"cold","origin":"brazil","organic":"yes","roast":"light"}]},{"_tag":"Iced mocha","i":{"constant":1,"id":"Iced mocha"},"j":[{"type":"cold","origin":"ethiopia","organic":"no","roast":"light"}]},{"_tag":"Latte","i":{"constant":1,"id":"Latte"},"j":[{"type":"hot","origin":"brazil","organic":"no","roast":"dark"}]}]},"p":[0.05,0.05,0.05,0.85],"VWState":{"m":"ff0744c1aa494e1ab39ba0c78d048146/550c12cbd3aa47f09fbed3387fb9c6ec"},"_original_label_cost":-0.0}"#, &pool).unwrap();
+        assert!(examples.len() == 5);
         workspace.setup_multi_ex(&mut examples).unwrap();
         pool.return_multi_example(examples);
     }
@@ -277,8 +278,11 @@ mod tests {
         workspace.learn_multi_example(&mut examples).unwrap();
         workspace.learn_multi_example(&mut examples).unwrap();
         workspace.learn_multi_example(&mut examples).unwrap();
-        let pred = workspace.predict_multi_example(&mut examples).unwrap();
-        println!("{:#?}", pred);
+        assert_eq!(examples.len(), 5);
+        match workspace.predict_multi_example(&mut examples).unwrap()
+        {
+            Prediction::ActionScores { values } => assert_eq!(values.len(), 4),
+        }
         pool.return_multi_example(examples);
     }
 }
