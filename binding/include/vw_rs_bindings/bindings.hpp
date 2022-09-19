@@ -84,6 +84,7 @@ extern "C"
       VWWorkspace* workspace_handle, VWMultiEx* example_handle, VWErrorMessage* error_message) noexcept;
   // Will allocate a prediction based on the returned prediction_type. It must be deleted with the corresponding type
   // deleter.
+  // TODO: tackle fact that predict sets test_only meaning that it is no longer able to be used in learn
   DLL_PUBLIC int VWWorkspacePredict(VWWorkspace* workspace_handle, VWExample* example_handle, void** prediction,
       uint32_t* prediction_type, VWErrorMessage* error_message) noexcept;
   // Will allocate a prediction based on the returned prediction_type. It must be deleted with the corresponding type
