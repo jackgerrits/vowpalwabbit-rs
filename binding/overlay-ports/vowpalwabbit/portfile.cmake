@@ -2,9 +2,9 @@ vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO jackgerrits/vowpal_wabbit
-    REF e5f8d2804854f9ba51e7c3edbc562bce711f5074
-    SHA512 7948995578480c5923e9eafe5f135958010d8c740595bdd8f25000020ac522d3cd002a52c0fc7e3de2b78000c4c728b62c1b2399f647f9bfbea13f2ffd538cf5
+    REPO VowpalWabbit/vowpal_wabbit
+    REF ebf709fa2a4f9d91b51bce1c49cc684d549ac2ff
+    SHA512 777c9a95458e18404d77fd1a1dd478bbcd9ee5dac88fc3f1de15eedcf218895dd2ed2269024a4b3acf4336b8a16aa6e4b18680cbeadb7852a2706d03c364bbbb
     HEAD_REF master
 )
 
