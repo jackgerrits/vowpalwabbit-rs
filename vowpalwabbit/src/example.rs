@@ -2,6 +2,9 @@ pub struct Example {
     pub(crate) example: *mut vowpalwabbit_sys::VWExample,
 }
 
+unsafe impl Send for Example {}
+unsafe impl Sync for Example {}
+
 impl Example {
     pub fn new() -> Example {
         unsafe {
@@ -19,8 +22,14 @@ impl Example {
         self.example
     }
 
-    pub(crate) fn release(self) {
-        std::mem::forget(self)
+    pub fn clear(&mut self) {
+        unsafe { vowpalwabbit_sys::VWExampleClear(self.get_mut_ptr()) }
+    }
+
+    pub fn release(self) -> *mut vowpalwabbit_sys::VWExample {
+        let raw = self.example;
+        std::mem::forget(self);
+        raw
     }
 }
 

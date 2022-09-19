@@ -5,7 +5,7 @@ use std::{
     os::raw::{c_int, c_void},
 };
 
-use vowpalwabbit_sys::{VWActionScores, VW_STATUS_SUCCESS, size_t};
+use vowpalwabbit_sys::{size_t, VWActionScores, VW_STATUS_SUCCESS};
 
 use crate::{
     error::{check_panic, check_return, ErrorMessageHolder, VWError},
@@ -18,6 +18,9 @@ pub struct Workspace {
     workspace: *mut vowpalwabbit_sys::VWWorkspace,
     error_message_holder: ErrorMessageHolder,
 }
+
+unsafe impl Send for Workspace {}
+unsafe impl Sync for Workspace {}
 
 unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
     let mut length = MaybeUninit::<size_t>::zeroed();
@@ -165,21 +168,30 @@ impl Workspace {
         }
     }
 
-    pub fn parse_decision_service_json(&self, content: &str) -> Result<MultiExample, VWError> {
+    pub fn parse_decision_service_json(
+        &self,
+        content: &str,
+        pool: &crate::pool::ExamplePool,
+    ) -> Result<MultiExample, VWError> {
         unsafe {
+            unsafe extern "C" fn wrapper(ctx: *mut c_void) -> *mut vowpalwabbit_sys::VWExample {
+                let pool = (ctx as *const crate::pool::ExamplePool).as_ref().unwrap();
+                pool.get_example().release()
+            }
+
             let mut error_message_holder = ErrorMessageHolder::new();
-            let multi_ex_handle = vowpalwabbit_sys::VWMultiExCreate();
+            let mut multi_example = pool.get_multi_example();
             let res = vowpalwabbit_sys::VWWorkspaceParseDSJson(
                 self.get_ptr(),
-                content.as_ptr() as *const i8,
+                content.as_ptr() as *const std::os::raw::c_char,
                 content.len().try_into().unwrap(),
-                multi_ex_handle,
+                Some(wrapper),
+                pool as *const crate::pool::ExamplePool as *mut c_void,
+                multi_example.get_mut_ptr(),
                 error_message_holder.get_mut_ptr(),
             );
             check_return!(res, error_message_holder);
-            Ok(MultiExample {
-                multi_example: multi_ex_handle,
-            })
+            Ok(multi_example)
         }
     }
 
@@ -220,7 +232,7 @@ impl Drop for Workspace {
 
 #[cfg(test)]
 mod tests {
-    use crate::workspace::Workspace;
+    use crate::{pool::ExamplePool, workspace::Workspace};
 
     #[test]
     fn create_workspace() {
@@ -240,15 +252,18 @@ mod tests {
     fn parse_dsjson() {
         let args: Vec<String> = vec!["--quiet".to_owned(), "--cb_explore_adf".to_owned()];
         let workspace = Workspace::new(&args).unwrap();
-        let mut examples = workspace.parse_decision_service_json(r#"{"_label_cost":-0.0,"_label_probability":0.05000000074505806,"_label_Action":4,"_labelIndex":3,"o":[{"v":0.0,"EventId":"13118d9b4c114f8485d9dec417e3aefe","ActionTaken":false}],"Timestamp":"2021-02-04T16:31:29.2460000Z","Version":"1","EventId":"13118d9b4c114f8485d9dec417e3aefe","a":[4,2,1,3],"c":{"FromUrl":[{"timeofday":"Afternoon","weather":"Sunny","name":"Cathy"}],"_multi":[{"_tag":"Cappucino","i":{"constant":1,"id":"Cappucino"},"j":[{"type":"hot","origin":"kenya","organic":"yes","roast":"dark"}]},{"_tag":"Cold brew","i":{"constant":1,"id":"Cold brew"},"j":[{"type":"cold","origin":"brazil","organic":"yes","roast":"light"}]},{"_tag":"Iced mocha","i":{"constant":1,"id":"Iced mocha"},"j":[{"type":"cold","origin":"ethiopia","organic":"no","roast":"light"}]},{"_tag":"Latte","i":{"constant":1,"id":"Latte"},"j":[{"type":"hot","origin":"brazil","organic":"no","roast":"dark"}]}]},"p":[0.05,0.05,0.05,0.85],"VWState":{"m":"ff0744c1aa494e1ab39ba0c78d048146/550c12cbd3aa47f09fbed3387fb9c6ec"},"_original_label_cost":-0.0}"#).unwrap();
+        let pool = ExamplePool::new();
+        let mut examples = workspace.parse_decision_service_json(r#"{"_label_cost":-0.0,"_label_probability":0.05000000074505806,"_label_Action":4,"_labelIndex":3,"o":[{"v":0.0,"EventId":"13118d9b4c114f8485d9dec417e3aefe","ActionTaken":false}],"Timestamp":"2021-02-04T16:31:29.2460000Z","Version":"1","EventId":"13118d9b4c114f8485d9dec417e3aefe","a":[4,2,1,3],"c":{"FromUrl":[{"timeofday":"Afternoon","weather":"Sunny","name":"Cathy"}],"_multi":[{"_tag":"Cappucino","i":{"constant":1,"id":"Cappucino"},"j":[{"type":"hot","origin":"kenya","organic":"yes","roast":"dark"}]},{"_tag":"Cold brew","i":{"constant":1,"id":"Cold brew"},"j":[{"type":"cold","origin":"brazil","organic":"yes","roast":"light"}]},{"_tag":"Iced mocha","i":{"constant":1,"id":"Iced mocha"},"j":[{"type":"cold","origin":"ethiopia","organic":"no","roast":"light"}]},{"_tag":"Latte","i":{"constant":1,"id":"Latte"},"j":[{"type":"hot","origin":"brazil","organic":"no","roast":"dark"}]}]},"p":[0.05,0.05,0.05,0.85],"VWState":{"m":"ff0744c1aa494e1ab39ba0c78d048146/550c12cbd3aa47f09fbed3387fb9c6ec"},"_original_label_cost":-0.0}"#, &pool).unwrap();
         workspace.setup_multi_ex(&mut examples).unwrap();
+        pool.return_multi_example(examples);
     }
 
     #[test]
     fn parse_invalid_dsjson() {
+        let pool = ExamplePool::new();
         let args: Vec<String> = vec!["--cb_explore_adf".to_owned()];
         let workspace = Workspace::new(&args).unwrap();
-        let maybe_examples = workspace.parse_decision_service_json(r#"{"unclosed}"#);
+        let maybe_examples = workspace.parse_decision_service_json(r#"{"unclosed}"#, &pool);
         assert!(maybe_examples.is_err());
     }
 
@@ -256,12 +271,14 @@ mod tests {
     fn parse_dsjson_and_learn() {
         let args: Vec<String> = vec!["--quiet".to_owned(), "--cb_adf".to_owned()];
         let mut workspace = Workspace::new(&args).unwrap();
-        let mut examples = workspace.parse_decision_service_json(r#"{"_label_cost":-1.0,"_label_probability":0.05000000074505806,"_label_Action":4,"_labelIndex":3,"o":[{"v":0.0,"EventId":"13118d9b4c114f8485d9dec417e3aefe","ActionTaken":false}],"Timestamp":"2021-02-04T16:31:29.2460000Z","Version":"1","EventId":"13118d9b4c114f8485d9dec417e3aefe","a":[4,2,1,3],"c":{"FromUrl":[{"timeofday":"Afternoon","weather":"Sunny","name":"Cathy"}],"_multi":[{"_tag":"Cappucino","i":{"constant":1,"id":"Cappucino"},"j":[{"type":"hot","origin":"kenya","organic":"yes","roast":"dark"}]},{"_tag":"Cold brew","i":{"constant":1,"id":"Cold brew"},"j":[{"type":"cold","origin":"brazil","organic":"yes","roast":"light"}]},{"_tag":"Iced mocha","i":{"constant":1,"id":"Iced mocha"},"j":[{"type":"cold","origin":"ethiopia","organic":"no","roast":"light"}]},{"_tag":"Latte","i":{"constant":1,"id":"Latte"},"j":[{"type":"hot","origin":"brazil","organic":"no","roast":"dark"}]}]},"p":[0.05,0.05,0.05,0.85],"VWState":{"m":"ff0744c1aa494e1ab39ba0c78d048146/550c12cbd3aa47f09fbed3387fb9c6ec"},"_original_label_cost":-0.0}"#).unwrap();
+        let pool = ExamplePool::new();
+        let mut examples = workspace.parse_decision_service_json(r#"{"_label_cost":-1.0,"_label_probability":0.05000000074505806,"_label_Action":4,"_labelIndex":3,"o":[{"v":0.0,"EventId":"13118d9b4c114f8485d9dec417e3aefe","ActionTaken":false}],"Timestamp":"2021-02-04T16:31:29.2460000Z","Version":"1","EventId":"13118d9b4c114f8485d9dec417e3aefe","a":[4,2,1,3],"c":{"FromUrl":[{"timeofday":"Afternoon","weather":"Sunny","name":"Cathy"}],"_multi":[{"_tag":"Cappucino","i":{"constant":1,"id":"Cappucino"},"j":[{"type":"hot","origin":"kenya","organic":"yes","roast":"dark"}]},{"_tag":"Cold brew","i":{"constant":1,"id":"Cold brew"},"j":[{"type":"cold","origin":"brazil","organic":"yes","roast":"light"}]},{"_tag":"Iced mocha","i":{"constant":1,"id":"Iced mocha"},"j":[{"type":"cold","origin":"ethiopia","organic":"no","roast":"light"}]},{"_tag":"Latte","i":{"constant":1,"id":"Latte"},"j":[{"type":"hot","origin":"brazil","organic":"no","roast":"dark"}]}]},"p":[0.05,0.05,0.05,0.85],"VWState":{"m":"ff0744c1aa494e1ab39ba0c78d048146/550c12cbd3aa47f09fbed3387fb9c6ec"},"_original_label_cost":-0.0}"#, &pool).unwrap();
         workspace.setup_multi_ex(&mut examples).unwrap();
         workspace.learn_multi_example(&mut examples).unwrap();
         workspace.learn_multi_example(&mut examples).unwrap();
         workspace.learn_multi_example(&mut examples).unwrap();
         let pred = workspace.predict_multi_example(&mut examples).unwrap();
         println!("{:#?}", pred);
+        pool.return_multi_example(examples);
     }
 }

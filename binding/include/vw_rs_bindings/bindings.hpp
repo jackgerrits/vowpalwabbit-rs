@@ -92,11 +92,13 @@ extern "C"
   DLL_PUBLIC int VWWorkspacePredictMultiEx(VWWorkspace* workspace_handle, VWMultiEx* example_handle, void** prediction,
       uint32_t* prediction_type, VWErrorMessage* error_message) noexcept;
 
-  DLL_PUBLIC int VWWorkspaceParseDSJson(const VWWorkspace* workspace_handle, const char* json_string, size_t length,
-      VWMultiEx* output_handle, VWErrorMessage* error_message) noexcept;
+  typedef VWExample* VWExampleFactoryFunc(void*);
+  DLL_PUBLIC int VWWorkspaceParseDSJson(const VWWorkspace* workspace_handle, const char* json_string, size_t length, VWExampleFactoryFunc example_factory, void* example_factory_context,
+      VWMultiEx* output_handle,  VWErrorMessage* error_message) noexcept;
 
   DLL_PUBLIC VWExample* VWExampleCreate() noexcept;
   DLL_PUBLIC void VWExampleDelete(VWExample* example_handle) noexcept;
+  DLL_PUBLIC void VWExampleClear(VWExample* example_handle) noexcept;
 
   DLL_PUBLIC VWMultiEx* VWMultiExCreate() noexcept;
   // If any examples are held in the container they will be deleted too.

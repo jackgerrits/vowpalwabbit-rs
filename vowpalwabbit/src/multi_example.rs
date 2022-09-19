@@ -11,6 +11,9 @@ pub struct MultiExample {
     pub(crate) multi_example: *mut vowpalwabbit_sys::VWMultiEx,
 }
 
+unsafe impl Send for MultiExample {}
+unsafe impl Sync for MultiExample {}
+
 impl MultiExample {
     pub fn new() -> MultiExample {
         unsafe {

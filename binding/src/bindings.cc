@@ -227,7 +227,7 @@ try
 }
 CATCH_RETURN_EXCEPTION
 
-DLL_PUBLIC int VWWorkspaceParseDSJson(const VWWorkspace* workspace_handle, const char* json_string, size_t length,
+DLL_PUBLIC int VWWorkspaceParseDSJson(const VWWorkspace* workspace_handle, const char* json_string, size_t length, VWExampleFactoryFunc example_factory, void* example_factory_context,
     VWMultiEx* output_handle, VWErrorMessage* error_message) noexcept
 try
 {
@@ -235,17 +235,31 @@ try
   assert(output_handle != nullptr);
   assert(json_string != nullptr);
 
+  struct Converter
+  {
+    VWExampleFactoryFunc* _func;
+    void* _ctx;
+  };
+
+  Converter conv{example_factory, example_factory_context};
+
+  std::string contents{json_string, length};
+
   using example_factory_t = example& (*)(void*);
 
-  example_factory_t factory = [](void* /* context */) -> VW::example& { return *new VW::example; };
-
+  example_factory_t factory = [](void* context) -> VW::example& {
+    auto* conv = reinterpret_cast<Converter*>(context);
+    auto* ex = reinterpret_cast<VW::example*>(conv->_func(conv->_ctx));
+    return *ex;
+    };
   auto* workspace = const_cast<VW::workspace*>(reinterpret_cast<const VW::workspace*>(workspace_handle));
   auto* multi_ex = reinterpret_cast<VW::multi_ex*>(output_handle);
   assert(multi_ex->empty());
-  multi_ex->push_back(new VW::example);
+  multi_ex->push_back(&factory(&conv));
   DecisionServiceInteraction info;
   VW::read_line_decision_service_json<false>(
-      *workspace, *multi_ex, const_cast<char*>(json_string), length, true, factory, nullptr, &info);
+      *workspace, *multi_ex, (char*)contents.c_str(), contents.size(), false, factory, &conv, &info);
+
   return VW_STATUS_SUCCESS;
 }
 CATCH_RETURN_EXCEPTION
@@ -256,6 +270,21 @@ DLL_PUBLIC void VWExampleDelete(VWExample* example_handle) noexcept
 {
   auto* ex = reinterpret_cast<VW::example*>(example_handle);
   delete ex;
+}
+
+DLL_PUBLIC void VWExampleClear(VWExample* example_handle) noexcept
+{
+  assert(example_handle != nullptr);
+  auto& ex = *reinterpret_cast<VW::example*>(example_handle);
+
+  for (features& fs : ex) { fs.clear(); }
+  ex.indices.clear();
+  ex.tag.clear();
+  ex.sorted = false;
+  ex.end_pass = false;
+  ex.is_newline = false;
+  ex._reduction_features.clear();
+  ex.num_features_from_interactions = 0;
 }
 
 VWMultiEx* VWMultiExCreate() noexcept { return reinterpret_cast<VWMultiEx*>(new VW::multi_ex); }

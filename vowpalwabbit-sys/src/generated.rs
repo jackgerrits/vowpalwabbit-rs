@@ -1255,12 +1255,17 @@ extern "C" {
         error_message: *mut VWErrorMessage,
     ) -> ::std::os::raw::c_int;
 }
+pub type VWExampleFactoryFunc = ::std::option::Option<
+    unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void) -> *mut VWExample,
+>;
 extern "C" {
     #[must_use]
     pub fn VWWorkspaceParseDSJson(
         workspace_handle: *const VWWorkspace,
         json_string: *const ::std::os::raw::c_char,
         length: size_t,
+        example_factory: VWExampleFactoryFunc,
+        example_factory_context: *mut ::std::os::raw::c_void,
         output_handle: *mut VWMultiEx,
         error_message: *mut VWErrorMessage,
     ) -> ::std::os::raw::c_int;
@@ -1270,6 +1275,9 @@ extern "C" {
 }
 extern "C" {
     pub fn VWExampleDelete(example_handle: *mut VWExample);
+}
+extern "C" {
+    pub fn VWExampleClear(example_handle: *mut VWExample);
 }
 extern "C" {
     pub fn VWMultiExCreate() -> *mut VWMultiEx;

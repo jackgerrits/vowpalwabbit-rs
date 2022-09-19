@@ -5,3 +5,5 @@ build
 .cache
 target/
 .DS_Store
+example_datafile.json
+.idea/
