@@ -168,7 +168,7 @@ DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, co
 }
 CATCH_RETURN_EXCEPTION
 
-DLL_PUBLIC void VWWorkspaceDeleteSerializedModel(unsigned char* bytes) noexcept
+DLL_PUBLIC void VWWorkspaceDeleteSerializedModel(const unsigned char* bytes) noexcept
 {
   delete[] bytes;
 }
