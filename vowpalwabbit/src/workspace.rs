@@ -24,7 +24,6 @@ unsafe impl Sync for Workspace {}
 
 unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
     let mut length = MaybeUninit::<size_t>::zeroed();
-    let mut error_message_holder = ErrorMessageHolder::new();
     vowpalwabbit_sys::VWActionScoresGetLength(
         pred_ptr as *const VWActionScores,
         length.as_mut_ptr(),
@@ -32,6 +31,7 @@ unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
     // todo check result
     let length = length.assume_init();
     let mut result: Vec<(u32, f32)> = Vec::new();
+    let mut error_message_holder = ErrorMessageHolder::new();
     for i in 0..length {
         let mut action = MaybeUninit::<u32>::zeroed();
         let mut value = MaybeUninit::<f32>::zeroed();

@@ -408,7 +408,7 @@ DLL_PUBLIC void VWActionScoresGetLength(const VWActionScores* action_scores_hand
 }
 
 DLL_PUBLIC int VWActionScoresGetValue(const VWActionScores* action_scores_handle, uint32_t* action, float* value,
-    size_t index, VWErrorMessage* error_message) noexcept
+    size_t index, VWErrorMessage* error_message) noexcept try
 {
   assert(action_scores_handle != nullptr);
   auto& a_s = *reinterpret_cast<const ACTION_SCORE::action_scores*>(action_scores_handle);
@@ -422,3 +422,4 @@ DLL_PUBLIC int VWActionScoresGetValue(const VWActionScores* action_scores_handle
   *value = a_s[index].score;
   return VW_STATUS_SUCCESS;
 }
+CATCH_RETURN_EXCEPTION
