@@ -70,8 +70,13 @@ extern "C"
   DLL_PUBLIC void VWErrorMessageClearValue(VWErrorMessage* error_message) noexcept;
 
   DLL_PUBLIC int VWWorkspaceInitialize(
-      const char* const* tokens, int count, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept;
+      const char* const* tokens, size_t count, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept;
+  DLL_PUBLIC int VWWorkspaceInitializeFromModel(
+      const char* const* extra_tokens, size_t count, const unsigned char* bytes, size_t num_bytes, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept;
   DLL_PUBLIC void VWWorkspaceDelete(VWWorkspace* workspace_handle) noexcept;
+
+  DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, const unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept;
+  DLL_PUBLIC void VWWorkspaceDeleteSerializedModel(const unsigned char* bytes) noexcept;
 
   DLL_PUBLIC int VWWorkspaceSetupExample(
       const VWWorkspace* workspace_handle, VWExample* example_handle, VWErrorMessage* error_message) noexcept;

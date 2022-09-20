@@ -300,7 +300,30 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    #[must_use]
+    pub fn VWWorkspaceInitializeFromModel(
+        extra_tokens: *const *const ::std::os::raw::c_char,
+        count: size_t,
+        bytes: *const ::std::os::raw::c_uchar,
+        num_bytes: size_t,
+        output_handle: *mut *mut VWWorkspace,
+        error_message: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
     pub fn VWWorkspaceDelete(workspace_handle: *mut VWWorkspace);
+}
+extern "C" {
+    #[must_use]
+    pub fn VWWorkspaceSerializeModel(
+        workspace_handle: *const VWWorkspace,
+        bytes: *mut *const ::std::os::raw::c_uchar,
+        num_bytes: *mut size_t,
+        error_message: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn VWWorkspaceDeleteSerializedModel(bytes: *const ::std::os::raw::c_uchar);
 }
 extern "C" {
     #[must_use]
