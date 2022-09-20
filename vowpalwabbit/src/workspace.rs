@@ -45,11 +45,15 @@ unsafe fn get_action_scores_or_probs(pred_ptr: *mut c_void) -> Vec<(u32, f32)> {
 }
 
 unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
-    Prediction::ActionScores { values: get_action_scores_or_probs(pred_ptr) }
+    Prediction::ActionScores {
+        values: get_action_scores_or_probs(pred_ptr),
+    }
 }
 
 unsafe fn action_probs(pred_ptr: *mut c_void) -> Prediction {
-    Prediction::ActionProbs { values: get_action_scores_or_probs(pred_ptr) }
+    Prediction::ActionProbs {
+        values: get_action_scores_or_probs(pred_ptr),
+    }
 }
 
 pub struct ModelBuffer {
