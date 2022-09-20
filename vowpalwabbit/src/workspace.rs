@@ -1,10 +1,4 @@
-use std::{
-    convert::TryInto,
-    ffi::CString,
-    mem::MaybeUninit,
-    os::raw::{c_int, c_void},
-    slice,
-};
+use std::{convert::TryInto, ffi::CString, mem::MaybeUninit, os::raw::c_void, slice, str};
 
 use vowpalwabbit_sys::{size_t, VWActionScores, VW_STATUS_SUCCESS};
 
@@ -23,7 +17,7 @@ pub struct Workspace {
 unsafe impl Send for Workspace {}
 unsafe impl Sync for Workspace {}
 
-unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
+unsafe fn get_action_scores_or_probs(pred_ptr: *mut c_void) -> Vec<(u32, f32)> {
     let mut length = MaybeUninit::<size_t>::zeroed();
     vowpalwabbit_sys::VWActionScoresGetLength(
         pred_ptr as *const VWActionScores,
@@ -47,7 +41,19 @@ unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
         result.push((action.assume_init(), value.assume_init()));
     }
     vowpalwabbit_sys::VWActionScoresDelete(pred_ptr as *mut VWActionScores);
-    Prediction::ActionScores { values: result }
+    result
+}
+
+unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
+    Prediction::ActionScores {
+        values: get_action_scores_or_probs(pred_ptr),
+    }
+}
+
+unsafe fn action_probs(pred_ptr: *mut c_void) -> Prediction {
+    Prediction::ActionProbs {
+        values: get_action_scores_or_probs(pred_ptr),
+    }
 }
 
 pub struct ModelBuffer {
@@ -65,7 +71,106 @@ impl std::ops::Deref for ModelBuffer {
 
 impl Drop for ModelBuffer {
     fn drop(&mut self) {
-        unsafe { vowpalwabbit_sys::VWWorkspaceDeleteSerializedModel(self.ptr) };
+        unsafe { vowpalwabbit_sys::VWWorkspaceDeleteBuffer(self.ptr) };
+    }
+}
+
+pub trait Predict<T> {
+    fn predict(&mut self, example: &mut T) -> Result<Prediction, VWError>;
+}
+
+impl Predict<Example> for Workspace {
+    fn predict(&mut self, example: &mut Example) -> Result<Prediction, VWError> {
+        self.error_message_holder.clear();
+        unsafe {
+            // TODO check result
+            let mut prediction = MaybeUninit::<*mut c_void>::zeroed();
+            let mut prediction_type = MaybeUninit::<u32>::zeroed();
+            let res = vowpalwabbit_sys::VWWorkspacePredict(
+                self.get_mut_ptr(),
+                example.get_mut_ptr(),
+                prediction.as_mut_ptr(),
+                prediction_type.as_mut_ptr(),
+                self.error_message_holder.get_mut_ptr(),
+            );
+            check_return!(res, self.error_message_holder);
+            let prediction_type = prediction_type.assume_init();
+            let prediction = prediction.assume_init();
+            match prediction_type {
+                vowpalwabbit_sys::override_prediction_type_t_action_scores => {
+                    Ok(action_scores(prediction))
+                }
+                vowpalwabbit_sys::override_prediction_type_t_action_probs => {
+                    Ok(action_probs(prediction))
+                }
+                _ => Err(VWError::Failure("Unknown".to_string())),
+            }
+        }
+    }
+}
+
+impl Predict<MultiExample> for Workspace {
+    fn predict(&mut self, example: &mut MultiExample) -> Result<Prediction, VWError> {
+        self.error_message_holder.clear();
+        unsafe {
+            // TODO check result
+            let mut prediction = MaybeUninit::<*mut c_void>::zeroed();
+            let mut prediction_type = MaybeUninit::<u32>::zeroed();
+            let res = vowpalwabbit_sys::VWWorkspacePredictMultiEx(
+                self.get_mut_ptr(),
+                example.get_mut_ptr(),
+                prediction.as_mut_ptr(),
+                prediction_type.as_mut_ptr(),
+                self.error_message_holder.get_mut_ptr(),
+            );
+            check_return!(res, self.error_message_holder);
+            let prediction_type = prediction_type.assume_init();
+            let prediction = prediction.assume_init();
+            match prediction_type {
+                vowpalwabbit_sys::override_prediction_type_t_action_scores => {
+                    Ok(action_scores(prediction))
+                }
+                vowpalwabbit_sys::override_prediction_type_t_action_probs => {
+                    Ok(action_probs(prediction))
+                }
+                _ => Err(VWError::Failure("Unknown".to_string())),
+            }
+        }
+    }
+}
+
+pub trait Learn<T> {
+    fn learn(&mut self, example: &mut T) -> Result<(), VWError>;
+}
+
+impl Learn<Example> for Workspace {
+    fn learn(&mut self, example: &mut Example) -> Result<(), VWError> {
+        self.error_message_holder.clear();
+        unsafe {
+            let res = vowpalwabbit_sys::VWWorkspaceLearn(
+                self.get_mut_ptr(),
+                example.get_mut_ptr(),
+                self.error_message_holder.get_mut_ptr(),
+            );
+            check_return!(res, self.error_message_holder);
+        }
+        Ok(())
+    }
+}
+
+impl Learn<MultiExample> for Workspace {
+    fn learn(&mut self, example: &mut MultiExample) -> Result<(), VWError> {
+        self.error_message_holder.clear();
+        unsafe {
+            // TODO check result
+            let res = vowpalwabbit_sys::VWWorkspaceLearnMultiEx(
+                self.get_mut_ptr(),
+                example.get_mut_ptr(),
+                self.error_message_holder.get_mut_ptr(),
+            );
+            check_return!(res, self.error_message_holder);
+            Ok(())
+        }
     }
 }
 
@@ -88,7 +193,7 @@ impl Workspace {
         unsafe {
             let res = vowpalwabbit_sys::VWWorkspaceInitialize(
                 c_args.as_ptr(),
-                c_args.len() as c_int,
+                c_args.len().try_into().unwrap(),
                 &mut workspace,
                 error_message_holder.get_mut_ptr(),
             );
@@ -156,92 +261,40 @@ impl Workspace {
         }
     }
 
+    pub fn serialize_readable_model(&self) -> Result<String, VWError> {
+        unsafe {
+            let mut bytes = MaybeUninit::<*const u8>::zeroed();
+            let mut num_bytes = MaybeUninit::<size_t>::zeroed();
+            let mut error_message_holder = ErrorMessageHolder::new();
+            let res = vowpalwabbit_sys::VWWorkspaceSerializeReadableModel(
+                self.get_ptr(),
+                bytes.as_mut_ptr(),
+                num_bytes.as_mut_ptr(),
+                error_message_holder.get_mut_ptr(),
+            );
+            check_return!(res, error_message_holder);
+
+            let bytes = bytes.assume_init();
+            let num_bytes = num_bytes.assume_init();
+
+            // let result = CStr
+            let readable_model_string =
+                str::from_utf8(slice::from_raw_parts(bytes, num_bytes.try_into().unwrap()))
+                    .unwrap()
+                    .to_string();
+
+            vowpalwabbit_sys::VWWorkspaceDeleteBuffer(bytes);
+
+            Ok(readable_model_string)
+        }
+    }
+
     fn get_ptr(&self) -> *const vowpalwabbit_sys::VWWorkspace {
         self.workspace
     }
 
     fn get_mut_ptr(&mut self) -> *mut vowpalwabbit_sys::VWWorkspace {
         self.workspace
-    }
-
-    pub fn learn(&mut self, example: &mut Example) -> Result<(), VWError> {
-        self.error_message_holder.clear();
-        unsafe {
-            let res = vowpalwabbit_sys::VWWorkspaceLearn(
-                self.get_mut_ptr(),
-                example.get_mut_ptr(),
-                self.error_message_holder.get_mut_ptr(),
-            );
-            check_return!(res, self.error_message_holder);
-        }
-        Ok(())
-    }
-
-    pub fn learn_multi_example(&mut self, example: &mut MultiExample) -> Result<(), VWError> {
-        self.error_message_holder.clear();
-        unsafe {
-            // TODO check result
-            let res = vowpalwabbit_sys::VWWorkspaceLearnMultiEx(
-                self.get_mut_ptr(),
-                example.get_mut_ptr(),
-                self.error_message_holder.get_mut_ptr(),
-            );
-            check_return!(res, self.error_message_holder);
-            Ok(())
-        }
-    }
-
-    pub fn predict(&mut self, example: &mut Example) -> Result<Prediction, VWError> {
-        self.error_message_holder.clear();
-        unsafe {
-            // TODO check result
-            let mut prediction = MaybeUninit::<*mut c_void>::zeroed();
-            let mut prediction_type = MaybeUninit::<u32>::zeroed();
-            let res = vowpalwabbit_sys::VWWorkspacePredict(
-                self.get_mut_ptr(),
-                example.get_mut_ptr(),
-                prediction.as_mut_ptr(),
-                prediction_type.as_mut_ptr(),
-                self.error_message_holder.get_mut_ptr(),
-            );
-            check_return!(res, self.error_message_holder);
-            let prediction_type = prediction_type.assume_init();
-            let prediction = prediction.assume_init();
-            match prediction_type {
-                vowpalwabbit_sys::override_prediction_type_t_action_scores => {
-                    Ok(action_scores(prediction))
-                }
-                _ => Err(VWError::Failure("Unknown".to_string())),
-            }
-        }
-    }
-
-    pub fn predict_multi_example(
-        &mut self,
-        example: &mut MultiExample,
-    ) -> Result<Prediction, VWError> {
-        self.error_message_holder.clear();
-        unsafe {
-            // TODO check result
-            let mut prediction = MaybeUninit::<*mut c_void>::zeroed();
-            let mut prediction_type = MaybeUninit::<u32>::zeroed();
-            let res = vowpalwabbit_sys::VWWorkspacePredictMultiEx(
-                self.get_mut_ptr(),
-                example.get_mut_ptr(),
-                prediction.as_mut_ptr(),
-                prediction_type.as_mut_ptr(),
-                self.error_message_holder.get_mut_ptr(),
-            );
-            check_return!(res, self.error_message_holder);
-            let prediction_type = prediction_type.assume_init();
-            let prediction = prediction.assume_init();
-            match prediction_type {
-                vowpalwabbit_sys::override_prediction_type_t_action_scores => {
-                    Ok(action_scores(prediction))
-                }
-                _ => Err(VWError::Failure("Unknown".to_string())),
-            }
-        }
     }
 
     pub fn parse_decision_service_json(
@@ -308,7 +361,11 @@ impl Drop for Workspace {
 
 #[cfg(test)]
 mod tests {
-    use crate::{pool::ExamplePool, prediction::Prediction, workspace::Workspace};
+    use crate::{
+        pool::ExamplePool,
+        prediction::Prediction,
+        workspace::{Learn, Predict, Workspace},
+    };
 
     #[test]
     fn create_workspace() {
@@ -351,12 +408,15 @@ mod tests {
         let pool = ExamplePool::new();
         let mut examples = workspace.parse_decision_service_json(r#"{"_label_cost":-1.0,"_label_probability":0.05000000074505806,"_label_Action":4,"_labelIndex":3,"o":[{"v":0.0,"EventId":"13118d9b4c114f8485d9dec417e3aefe","ActionTaken":false}],"Timestamp":"2021-02-04T16:31:29.2460000Z","Version":"1","EventId":"13118d9b4c114f8485d9dec417e3aefe","a":[4,2,1,3],"c":{"FromUrl":[{"timeofday":"Afternoon","weather":"Sunny","name":"Cathy"}],"_multi":[{"_tag":"Cappucino","i":{"constant":1,"id":"Cappucino"},"j":[{"type":"hot","origin":"kenya","organic":"yes","roast":"dark"}]},{"_tag":"Cold brew","i":{"constant":1,"id":"Cold brew"},"j":[{"type":"cold","origin":"brazil","organic":"yes","roast":"light"}]},{"_tag":"Iced mocha","i":{"constant":1,"id":"Iced mocha"},"j":[{"type":"cold","origin":"ethiopia","organic":"no","roast":"light"}]},{"_tag":"Latte","i":{"constant":1,"id":"Latte"},"j":[{"type":"hot","origin":"brazil","organic":"no","roast":"dark"}]}]},"p":[0.05,0.05,0.05,0.85],"VWState":{"m":"ff0744c1aa494e1ab39ba0c78d048146/550c12cbd3aa47f09fbed3387fb9c6ec"},"_original_label_cost":-0.0}"#, &pool).unwrap();
         workspace.setup_multi_ex(&mut examples).unwrap();
-        workspace.learn_multi_example(&mut examples).unwrap();
-        workspace.learn_multi_example(&mut examples).unwrap();
-        workspace.learn_multi_example(&mut examples).unwrap();
+        workspace.learn(&mut examples).unwrap();
+        workspace.learn(&mut examples).unwrap();
+        workspace.learn(&mut examples).unwrap();
         assert_eq!(examples.len(), 5);
-        match workspace.predict_multi_example(&mut examples).unwrap() {
+        match workspace.predict(&mut examples).unwrap() {
             Prediction::ActionScores { values } => assert_eq!(values.len(), 4),
+            Prediction::ActionProbs { values: _ } => {
+                panic!("Prediction should not be Action probs")
+            }
         }
         pool.return_multi_example(examples);
     }

@@ -7,7 +7,6 @@ include!("generated.rs");
 #[cfg(test)]
 mod tests {
     use std::ffi::CString;
-    use std::os::raw::c_int;
 
     use super::*;
 
@@ -35,7 +34,7 @@ mod tests {
             let mut workspace: *mut VWWorkspace = std::ptr::null_mut();
             let res = VWWorkspaceInitialize(
                 c_args.as_ptr(),
-                c_args.len() as c_int,
+                c_args.len().try_into().unwrap(),
                 &mut workspace,
                 error_message,
             );

@@ -7,6 +7,26 @@ pub const _LIBCPP_OBJECT_FORMAT_MACHO: u32 = 1;
 pub const _LIBCPP_HIDE_FROM_ABI_PER_TU: u32 = 0;
 pub const _LIBCPP_DEBUG_LEVEL: u32 = 0;
 pub const _LIBCPP_LOCALE__L_EXTENSIONS: u32 = 1;
+pub const __cpp_lib_chrono_udls: u32 = 201304;
+pub const __cpp_lib_complex_udls: u32 = 201309;
+pub const __cpp_lib_exchange_function: u32 = 201304;
+pub const __cpp_lib_generic_associative_lookup: u32 = 201304;
+pub const __cpp_lib_integer_sequence: u32 = 201304;
+pub const __cpp_lib_integral_constant_callable: u32 = 201304;
+pub const __cpp_lib_is_final: u32 = 201402;
+pub const __cpp_lib_is_null_pointer: u32 = 201309;
+pub const __cpp_lib_make_reverse_iterator: u32 = 201402;
+pub const __cpp_lib_make_unique: u32 = 201304;
+pub const __cpp_lib_null_iterators: u32 = 201304;
+pub const __cpp_lib_quoted_string_io: u32 = 201304;
+pub const __cpp_lib_result_of_sfinae: u32 = 201210;
+pub const __cpp_lib_robust_nonmodifying_seq_ops: u32 = 201304;
+pub const __cpp_lib_shared_timed_mutex: u32 = 201402;
+pub const __cpp_lib_string_udls: u32 = 201304;
+pub const __cpp_lib_transformation_trait_aliases: u32 = 201304;
+pub const __cpp_lib_transparent_operators: u32 = 201210;
+pub const __cpp_lib_tuple_element_t: u32 = 201402;
+pub const __cpp_lib_tuples_by_type: u32 = 201304;
 pub const __WORDSIZE: u32 = 64;
 pub const __DARWIN_ONLY_64_BIT_INO_T: u32 = 1;
 pub const __DARWIN_ONLY_UNIX_CONFORMANCE: u32 = 1;
@@ -81,6 +101,13 @@ pub const WINT_MIN: i32 = -2147483648;
 pub const WINT_MAX: u32 = 2147483647;
 pub const SIG_ATOMIC_MIN: i32 = -2147483648;
 pub const SIG_ATOMIC_MAX: u32 = 2147483647;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct std___libcpp_is_integral {
+    pub _address: u8,
+}
+pub const std___libcpp_is_integral_value: std___libcpp_is_integral__bindgen_ty_1 = 0;
+pub type std___libcpp_is_integral__bindgen_ty_1 = i32;
 pub type std_nullptr_t = *const ::std::os::raw::c_void;
 pub type size_t = ::std::os::raw::c_ulong;
 pub type max_align_t = f64;
@@ -291,10 +318,13 @@ extern "C" {
     pub fn VWErrorMessageClearValue(error_message: *mut VWErrorMessage);
 }
 extern "C" {
+    pub fn VWWorkspaceDeleteBuffer(buffer: *const ::std::os::raw::c_uchar);
+}
+extern "C" {
     #[must_use]
     pub fn VWWorkspaceInitialize(
         tokens: *const *const ::std::os::raw::c_char,
-        count: ::std::os::raw::c_int,
+        count: size_t,
         output_handle: *mut *mut VWWorkspace,
         error_message: *mut VWErrorMessage,
     ) -> ::std::os::raw::c_int;
@@ -323,7 +353,13 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn VWWorkspaceDeleteSerializedModel(bytes: *const ::std::os::raw::c_uchar);
+    #[must_use]
+    pub fn VWWorkspaceSerializeReadableModel(
+        workspace_handle: *const VWWorkspace,
+        bytes: *mut *const ::std::os::raw::c_uchar,
+        num_bytes: *mut size_t,
+        error_message: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[must_use]

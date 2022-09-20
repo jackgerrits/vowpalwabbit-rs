@@ -69,14 +69,18 @@ extern "C"
   DLL_PUBLIC const char* VWErrorMessageGetValue(const VWErrorMessage* error_message) noexcept;
   DLL_PUBLIC void VWErrorMessageClearValue(VWErrorMessage* error_message) noexcept;
 
+  DLL_PUBLIC void VWWorkspaceDeleteBuffer(const unsigned char* buffer) noexcept;
+
   DLL_PUBLIC int VWWorkspaceInitialize(
       const char* const* tokens, size_t count, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept;
   DLL_PUBLIC int VWWorkspaceInitializeFromModel(
       const char* const* extra_tokens, size_t count, const unsigned char* bytes, size_t num_bytes, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept;
   DLL_PUBLIC void VWWorkspaceDelete(VWWorkspace* workspace_handle) noexcept;
 
+  // bytes must be deleted using delete buffer
   DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, const unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept;
-  DLL_PUBLIC void VWWorkspaceDeleteSerializedModel(const unsigned char* bytes) noexcept;
+  // bytes is a c string and must be deleted using delete buffer
+  DLL_PUBLIC int VWWorkspaceSerializeReadableModel(const VWWorkspace* workspace_handle, const unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept;
 
   DLL_PUBLIC int VWWorkspaceSetupExample(
       const VWWorkspace* workspace_handle, VWExample* example_handle, VWErrorMessage* error_message) noexcept;
