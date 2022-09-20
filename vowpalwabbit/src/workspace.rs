@@ -414,6 +414,9 @@ mod tests {
         assert_eq!(examples.len(), 5);
         match workspace.predict(&mut examples).unwrap() {
             Prediction::ActionScores { values } => assert_eq!(values.len(), 4),
+            Prediction::ActionProbs { values: _ } => {
+                panic!("Prediction should not be Action probs")
+            }
         }
         pool.return_multi_example(examples);
     }

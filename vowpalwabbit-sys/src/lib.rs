@@ -7,7 +7,6 @@ include!("generated.rs");
 #[cfg(test)]
 mod tests {
     use std::ffi::CString;
-    use std::os::raw::c_int;
 
     use super::*;
 
