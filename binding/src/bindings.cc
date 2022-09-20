@@ -17,6 +17,9 @@
 #include "vw/core/vw_fwd.h"
 #include "vw/io/io_adapter.h"
 
+// Not exported in VW, but we know the symbol so it should be available...
+void dump_regressor(VW::workspace& all, io_buf& buf, bool as_text);
+
 struct VWErrorMessage
 {
   void set(VW::string_view message)
@@ -162,15 +165,33 @@ DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, co
   auto backing_buffer = std::make_shared<std::vector<char>>();
   buffer.add_file(VW::io::create_vector_writer(backing_buffer));
   VW::save_predictor(*const_cast<VW::workspace*>(workspace), buffer);
+  buffer.flush();
   *bytes = new unsigned char[backing_buffer->size()];
+  *num_bytes = backing_buffer->size();
   std::memcpy((void*)*bytes, backing_buffer->data(), backing_buffer->size());
   return VW_STATUS_SUCCESS;
 }
 CATCH_RETURN_EXCEPTION
 
-DLL_PUBLIC void VWWorkspaceDeleteSerializedModel(const unsigned char* bytes) noexcept
+DLL_PUBLIC int VWWorkspaceSerializeReadableModel(const VWWorkspace* workspace_handle, const unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept try
 {
-  delete[] bytes;
+  assert(workspace_handle != nullptr);
+  auto* workspace = reinterpret_cast<const VW::workspace*>(workspace_handle);
+  io_buf buffer;
+  auto backing_buffer = std::make_shared<std::vector<char>>();
+  buffer.add_file(VW::io::create_vector_writer(backing_buffer));
+  dump_regressor(*const_cast<VW::workspace*>(workspace), buffer, true);
+  buffer.flush();
+  *bytes = new unsigned char[backing_buffer->size()];
+  *num_bytes = backing_buffer->size();
+  std::memcpy((void*)*bytes, backing_buffer->data(), backing_buffer->size());
+  return VW_STATUS_SUCCESS;
+}
+CATCH_RETURN_EXCEPTION
+
+DLL_PUBLIC void VWWorkspaceDeleteBuffer(const unsigned char* buffer) noexcept
+{
+  delete[] buffer;
 }
 
 DLL_PUBLIC int VWWorkspaceSetupExample(

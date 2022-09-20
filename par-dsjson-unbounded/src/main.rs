@@ -6,13 +6,12 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use std::sync::{Condvar, Mutex};
 
-// 1.5.1
 use rayon::prelude::*;
 
 use vowpalwabbit::error::VWError;
 use vowpalwabbit::multi_example::MultiExample;
 use vowpalwabbit::pool::ExamplePool;
-use vowpalwabbit::workspace::Workspace;
+use vowpalwabbit::workspace::{Learn, Workspace};
 
 struct Item<T> {
     index: usize,
@@ -152,7 +151,7 @@ fn main() {
                     let ws = workspace.get().as_mut().unwrap();
                     let mut e = ex.unwrap();
                     ws.setup_multi_ex(&mut e).unwrap();
-                    ws.learn_multi_example(&mut e).unwrap();
+                    ws.learn(&mut e).unwrap();
                     pool.return_multi_example(e);
                 }
                 None => break,

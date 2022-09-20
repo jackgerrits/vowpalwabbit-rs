@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 
 use vowpalwabbit::pool::ExamplePool;
-use vowpalwabbit::workspace::Workspace;
+use vowpalwabbit::workspace::{Learn, Workspace};
 
 fn main() {
     let args: Vec<String> = vec!["--cb_adf".to_owned(), "--quiet".to_owned()];
@@ -28,14 +28,14 @@ fn main() {
             std::mem::drop(sender);
         });
 
+        let ws = workspace.get().as_mut().unwrap();
         loop {
             let res = r.recv();
             match res {
                 Ok(ex) => {
-                    let ws = workspace.get().as_mut().unwrap();
                     let mut e = ex.unwrap();
                     ws.setup_multi_ex(&mut e).unwrap();
-                    ws.learn_multi_example(&mut e).unwrap();
+                    ws.learn(&mut e).unwrap();
 
                     pool.return_multi_example(e);
                 }
