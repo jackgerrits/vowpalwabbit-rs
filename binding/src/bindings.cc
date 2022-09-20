@@ -136,7 +136,7 @@ try
 CATCH_RETURN_EXCEPTION
 
 DLL_PUBLIC int VWWorkspaceInitializeFromModel(
-    const char* const* extra_tokens, size_t count, unsigned char* bytes, size_t num_bytes, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept
+    const char* const* extra_tokens, size_t count, const unsigned char* bytes, size_t num_bytes, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept
 try
 {
   std::vector<std::string> args(extra_tokens, extra_tokens + count);
@@ -154,7 +154,7 @@ DLL_PUBLIC void VWWorkspaceDelete(VWWorkspace* workspace_handle) noexcept
   delete workspace;
 }
 
-DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept try
+DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, const unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept try
 {
   assert(workspace_handle != nullptr);
   auto* workspace = reinterpret_cast<const VW::workspace*>(workspace_handle);
@@ -163,7 +163,7 @@ DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, un
   buffer.add_file(VW::io::create_vector_writer(backing_buffer));
   VW::save_predictor(*const_cast<VW::workspace*>(workspace), buffer);
   *bytes = new unsigned char[backing_buffer->size()];
-  std::memcpy(*bytes, backing_buffer->data(), backing_buffer->size());
+  std::memcpy((void*)*bytes, backing_buffer->data(), backing_buffer->size());
   return VW_STATUS_SUCCESS;
 }
 CATCH_RETURN_EXCEPTION
