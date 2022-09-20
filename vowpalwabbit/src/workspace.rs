@@ -3,6 +3,7 @@ use std::{
     ffi::CString,
     mem::MaybeUninit,
     os::raw::{c_int, c_void},
+    slice,
 };
 
 use vowpalwabbit_sys::{size_t, VWActionScores, VW_STATUS_SUCCESS};
@@ -49,6 +50,25 @@ unsafe fn action_scores(pred_ptr: *mut c_void) -> Prediction {
     Prediction::ActionScores { values: result }
 }
 
+pub struct ModelBuffer {
+    ptr: *const u8,
+    len: usize,
+}
+
+impl std::ops::Deref for ModelBuffer {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        unsafe { slice::from_raw_parts(self.ptr, self.len) }
+    }
+}
+
+impl Drop for ModelBuffer {
+    fn drop(&mut self) {
+        unsafe { vowpalwabbit_sys::VWWorkspaceDeleteSerializedModel(self.ptr) };
+    }
+}
+
 impl Workspace {
     // TODO use a trait bound of something to make this a more flexible input, &str, &String, String etc
     pub fn new(args: &[String]) -> Result<Workspace, VWError> {
@@ -76,6 +96,62 @@ impl Workspace {
             Ok(Workspace {
                 workspace,
                 error_message_holder,
+            })
+        }
+    }
+
+    pub fn load_model(bytes: &[u8], extra_args: Option<&[String]>) -> Result<Workspace, VWError> {
+        let mut workspace: *mut vowpalwabbit_sys::VWWorkspace = std::ptr::null_mut();
+
+        let empty_args = vec![];
+        let args = extra_args
+            .unwrap_or(&empty_args)
+            .iter()
+            .map(|arg| CString::new(arg.clone()).unwrap())
+            .collect::<Vec<CString>>();
+
+        let c_args = args
+            .iter()
+            .map(|arg| arg.as_ptr())
+            .collect::<Vec<*const ::std::os::raw::c_char>>();
+
+        let mut error_message_holder = ErrorMessageHolder::new();
+        unsafe {
+            let res = vowpalwabbit_sys::VWWorkspaceInitializeFromModel(
+                c_args.as_ptr(),
+                c_args.len().try_into().unwrap(),
+                bytes.as_ptr(),
+                bytes.len().try_into().unwrap(),
+                &mut workspace,
+                error_message_holder.get_mut_ptr(),
+            );
+            check_return!(res, error_message_holder);
+            Ok(Workspace {
+                workspace,
+                error_message_holder,
+            })
+        }
+    }
+
+    pub fn serialize_model(&self) -> Result<ModelBuffer, VWError> {
+        unsafe {
+            let mut bytes = MaybeUninit::<*const u8>::zeroed();
+            let mut num_bytes = MaybeUninit::<size_t>::zeroed();
+            let mut error_message_holder = ErrorMessageHolder::new();
+            let res = vowpalwabbit_sys::VWWorkspaceSerializeModel(
+                self.get_ptr(),
+                bytes.as_mut_ptr(),
+                num_bytes.as_mut_ptr(),
+                error_message_holder.get_mut_ptr(),
+            );
+            check_return!(res, error_message_holder);
+
+            let bytes = bytes.assume_init();
+            let num_bytes = num_bytes.assume_init();
+
+            Ok(ModelBuffer {
+                ptr: bytes,
+                len: num_bytes.try_into().unwrap(),
             })
         }
     }
