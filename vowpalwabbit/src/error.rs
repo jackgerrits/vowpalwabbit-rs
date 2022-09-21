@@ -4,7 +4,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum VWError {
-    #[error("Generic failure")]
+    #[error("{0:?}")]
     Failure(String),
 }
 

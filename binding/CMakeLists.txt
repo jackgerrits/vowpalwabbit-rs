@@ -13,6 +13,19 @@ set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_LIST_DIR}/overlay-ports")
 
 project(vowpalwabbit-rs-bindings LANGUAGES CXX)
 
+if(VW_RS_ASAN)
+  add_compile_definitions(VW_USE_ASAN)
+  if(MSVC)
+    add_compile_options(/fsanitize=address /GS- /wd5072)
+    add_link_options(/InferASanLibs /incremental:no /debug)
+    # Workaround for MSVC ASan issue here: https://developercommunity.visualstudio.com/t/VS2022---Address-sanitizer-on-x86-Debug-/10116361
+    add_compile_definitions(_DISABLE_STRING_ANNOTATION)
+  else()
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer -g3)
+    add_link_options(-fsanitize=address -fno-omit-frame-pointer -g3)
+  endif()
+endif()
+
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 find_package(VowpalWabbit CONFIG REQUIRED)

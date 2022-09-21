@@ -3,6 +3,5 @@
 members = [
     "vowpalwabbit",
     "vowpalwabbit-sys",
-    "par-dsjson",
-    "par-dsjson-unbounded",
+    "tool",
 ]

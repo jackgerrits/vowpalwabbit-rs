@@ -363,6 +363,13 @@ extern "C" {
 }
 extern "C" {
     #[must_use]
+    pub fn VWWorkspaceEndPass(
+        workspace_handle: *mut VWWorkspace,
+        error_message: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[must_use]
     pub fn VWWorkspaceSetupExample(
         workspace_handle: *const VWWorkspace,
         example_handle: *mut VWExample,
@@ -410,6 +417,22 @@ extern "C" {
         example_handle: *mut VWMultiEx,
         prediction: *mut *mut ::std::os::raw::c_void,
         prediction_type: *mut u32,
+        error_message: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[must_use]
+    pub fn VWWorkspaceRecordExample(
+        workspace_handle: *mut VWWorkspace,
+        example_handle: *mut VWExample,
+        error_message: *mut VWErrorMessage,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[must_use]
+    pub fn VWWorkspaceRecordMultiEx(
+        workspace_handle: *mut VWWorkspace,
+        example_handle: *mut VWMultiEx,
         error_message: *mut VWErrorMessage,
     ) -> ::std::os::raw::c_int;
 }

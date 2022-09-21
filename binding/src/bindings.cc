@@ -123,6 +123,8 @@ void VWErrorMessageClearValue(VWErrorMessage* error_message) noexcept
   error_message->clear();
 }
 
+DLL_PUBLIC void VWWorkspaceDeleteBuffer(const unsigned char* buffer) noexcept { delete[] buffer; }
+
 // VWWorkspace
 
 DLL_PUBLIC int VWWorkspaceInitialize(
@@ -138,8 +140,8 @@ try
 }
 CATCH_RETURN_EXCEPTION
 
-DLL_PUBLIC int VWWorkspaceInitializeFromModel(
-    const char* const* extra_tokens, size_t count, const unsigned char* bytes, size_t num_bytes, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept
+DLL_PUBLIC int VWWorkspaceInitializeFromModel(const char* const* extra_tokens, size_t count, const unsigned char* bytes,
+    size_t num_bytes, VWWorkspace** output_handle, VWErrorMessage* error_message) noexcept
 try
 {
   std::vector<std::string> args(extra_tokens, extra_tokens + count);
@@ -157,7 +159,9 @@ DLL_PUBLIC void VWWorkspaceDelete(VWWorkspace* workspace_handle) noexcept
   delete workspace;
 }
 
-DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, const unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept try
+DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, const unsigned char** bytes,
+    size_t* num_bytes, VWErrorMessage* error_message) noexcept
+try
 {
   assert(workspace_handle != nullptr);
   auto* workspace = reinterpret_cast<const VW::workspace*>(workspace_handle);
@@ -173,7 +177,9 @@ DLL_PUBLIC int VWWorkspaceSerializeModel(const VWWorkspace* workspace_handle, co
 }
 CATCH_RETURN_EXCEPTION
 
-DLL_PUBLIC int VWWorkspaceSerializeReadableModel(const VWWorkspace* workspace_handle, const unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept try
+DLL_PUBLIC int VWWorkspaceSerializeReadableModel(const VWWorkspace* workspace_handle, const unsigned char** bytes,
+    size_t* num_bytes, VWErrorMessage* error_message) noexcept
+try
 {
   assert(workspace_handle != nullptr);
   auto* workspace = reinterpret_cast<const VW::workspace*>(workspace_handle);
@@ -189,10 +195,18 @@ DLL_PUBLIC int VWWorkspaceSerializeReadableModel(const VWWorkspace* workspace_ha
 }
 CATCH_RETURN_EXCEPTION
 
-DLL_PUBLIC void VWWorkspaceDeleteBuffer(const unsigned char* buffer) noexcept
+DLL_PUBLIC int VWWorkspaceEndPass(VWWorkspace* workspace_handle, VWErrorMessage* error_message) noexcept
+try
 {
-  delete[] buffer;
+  assert(workspace_handle != nullptr);
+  assert(example_handle != nullptr);
+
+  auto* workspace = reinterpret_cast<VW::workspace*>(workspace_handle);
+  workspace->current_pass++;
+  workspace->l->end_pass();
+  return VW_STATUS_SUCCESS;
 }
+CATCH_RETURN_EXCEPTION
 
 DLL_PUBLIC int VWWorkspaceSetupExample(
     const VWWorkspace* workspace_handle, VWExample* example_handle, VWErrorMessage* error_message) noexcept
@@ -282,8 +296,35 @@ try
 }
 CATCH_RETURN_EXCEPTION
 
-DLL_PUBLIC int VWWorkspaceParseDSJson(const VWWorkspace* workspace_handle, const char* json_string, size_t length, VWExampleFactoryFunc example_factory, void* example_factory_context,
-    VWMultiEx* output_handle, VWErrorMessage* error_message) noexcept
+DLL_PUBLIC int VWWorkspaceRecordExample(
+    VWWorkspace* workspace_handle, VWExample* example_handle, VWErrorMessage* error_message) noexcept
+try
+{
+  assert(workspace_handle != nullptr);
+  assert(example_handle != nullptr);
+  auto* workspace = reinterpret_cast<VW::workspace*>(workspace_handle);
+  auto* ex = reinterpret_cast<VW::example*>(example_handle);
+  workspace->finish_example(*ex);
+  return VW_STATUS_SUCCESS;
+}
+CATCH_RETURN_EXCEPTION
+
+DLL_PUBLIC int VWWorkspaceRecordMultiEx(
+    VWWorkspace* workspace_handle, VWMultiEx* example_handle, VWErrorMessage* error_message) noexcept
+try
+{
+  assert(workspace_handle != nullptr);
+  assert(example_handle != nullptr);
+  auto* workspace = reinterpret_cast<VW::workspace*>(workspace_handle);
+  auto* ex = reinterpret_cast<VW::multi_ex*>(example_handle);
+  workspace->finish_example(*ex);
+  return VW_STATUS_SUCCESS;
+}
+CATCH_RETURN_EXCEPTION
+
+DLL_PUBLIC int VWWorkspaceParseDSJson(const VWWorkspace* workspace_handle, const char* json_string, size_t length,
+    VWExampleFactoryFunc example_factory, void* example_factory_context, VWMultiEx* output_handle,
+    VWErrorMessage* error_message) noexcept
 try
 {
   assert(workspace_handle != nullptr);
@@ -302,11 +343,12 @@ try
 
   using example_factory_t = example& (*)(void*);
 
-  example_factory_t factory = [](void* context) -> VW::example& {
+  example_factory_t factory = [](void* context) -> VW::example&
+  {
     auto* conv = reinterpret_cast<Converter*>(context);
     auto* ex = reinterpret_cast<VW::example*>(conv->_func(conv->_ctx));
     return *ex;
-    };
+  };
   auto* workspace = const_cast<VW::workspace*>(reinterpret_cast<const VW::workspace*>(workspace_handle));
   auto* multi_ex = reinterpret_cast<VW::multi_ex*>(output_handle);
   assert(multi_ex->empty());
@@ -463,7 +505,8 @@ DLL_PUBLIC void VWActionScoresGetLength(const VWActionScores* action_scores_hand
 }
 
 DLL_PUBLIC int VWActionScoresGetValue(const VWActionScores* action_scores_handle, uint32_t* action, float* value,
-    size_t index, VWErrorMessage* error_message) noexcept try
+    size_t index, VWErrorMessage* error_message) noexcept
+try
 {
   assert(action_scores_handle != nullptr);
   auto& a_s = *reinterpret_cast<const ACTION_SCORE::action_scores*>(action_scores_handle);
