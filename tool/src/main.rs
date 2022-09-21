@@ -1,6 +1,6 @@
 use std::cell::UnsafeCell;
 
-use std::collections::{BTreeSet};
+use std::collections::BTreeSet;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
 
