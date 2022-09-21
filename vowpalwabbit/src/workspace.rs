@@ -4,8 +4,8 @@ use vowpalwabbit_sys::{size_t, VWActionScores, VW_STATUS_SUCCESS};
 
 use crate::{
     error::{check_panic, check_return, ErrorMessageHolder, VWError},
-    example::Example,
-    multi_example::MultiExample,
+    example::{Example, RawExample},
+    multi_example::{MultiExample, RawMultiExample},
     prediction::Prediction,
 };
 
@@ -72,6 +72,81 @@ impl std::ops::Deref for ModelBuffer {
 impl Drop for ModelBuffer {
     fn drop(&mut self) {
         unsafe { vowpalwabbit_sys::VWWorkspaceDeleteBuffer(self.ptr) };
+    }
+}
+
+pub trait SetupExample<T, U> {
+    fn setup(&self, example: T) -> Result<U, VWError>;
+}
+
+impl SetupExample<RawExample, Example> for Workspace {
+    fn setup(&self, mut example: RawExample) -> Result<Example, VWError> {
+        unsafe {
+            let mut error_message = ErrorMessageHolder::new();
+            let res = vowpalwabbit_sys::VWWorkspaceSetupExample(
+                self.get_ptr(),
+                example.get_mut_ptr(),
+                error_message.get_mut_ptr(),
+            );
+            check_return!(res, error_message);
+
+            let raw_ptr = example.get_mut_ptr();
+            std::mem::forget(example);
+            Ok(Example { example: raw_ptr })
+        }
+    }
+}
+
+impl SetupExample<RawMultiExample, MultiExample> for Workspace {
+    fn setup(&self, mut example: RawMultiExample) -> Result<MultiExample, VWError> {
+        unsafe {
+            let mut error_message = ErrorMessageHolder::new();
+            let res = vowpalwabbit_sys::VWWorkspaceSetupMultiEx(
+                self.get_ptr(),
+                example.get_mut_ptr(),
+                error_message.get_mut_ptr(),
+            );
+            check_return!(res, error_message);
+            let raw_ptr = example.get_mut_ptr();
+            std::mem::forget(example);
+            Ok(MultiExample {
+                multi_example: raw_ptr,
+            })
+        }
+    }
+}
+
+pub trait RecordStats<T> {
+    fn record_stats(&mut self, example: &mut T) -> Result<(), VWError>;
+}
+
+impl RecordStats<Example> for Workspace {
+    fn record_stats(&mut self, example: &mut Example) -> Result<(), VWError> {
+        let mut error_message = ErrorMessageHolder::new();
+        unsafe {
+            let res = vowpalwabbit_sys::VWWorkspaceRecordExample(
+                self.get_mut_ptr(),
+                example.get_mut_ptr(),
+                error_message.get_mut_ptr(),
+            );
+            check_return!(res, error_message);
+        }
+        Ok(())
+    }
+}
+
+impl RecordStats<MultiExample> for Workspace {
+    fn record_stats(&mut self, example: &mut MultiExample) -> Result<(), VWError> {
+        let mut error_message = ErrorMessageHolder::new();
+        unsafe {
+            let res = vowpalwabbit_sys::VWWorkspaceRecordMultiEx(
+                self.get_mut_ptr(),
+                example.get_mut_ptr(),
+                error_message.get_mut_ptr(),
+            );
+            check_return!(res, error_message);
+        }
+        Ok(())
     }
 }
 
@@ -301,7 +376,7 @@ impl Workspace {
         &self,
         content: &str,
         pool: &crate::pool::ExamplePool,
-    ) -> Result<MultiExample, VWError> {
+    ) -> Result<RawMultiExample, VWError> {
         unsafe {
             unsafe extern "C" fn wrapper(ctx: *mut c_void) -> *mut vowpalwabbit_sys::VWExample {
                 let pool = (ctx as *const crate::pool::ExamplePool).as_ref().unwrap();
@@ -324,30 +399,16 @@ impl Workspace {
         }
     }
 
-    pub fn setup_ex(&self, example: &mut Example) -> Result<(), VWError> {
+    pub fn end_pass(&mut self) -> Result<(), VWError> {
+        self.error_message_holder.clear();
         unsafe {
-            let mut error_message = ErrorMessageHolder::new();
-            let res = vowpalwabbit_sys::VWWorkspaceSetupExample(
-                self.get_ptr(),
-                example.get_mut_ptr(),
-                error_message.get_mut_ptr(),
+            let res = vowpalwabbit_sys::VWWorkspaceEndPass(
+                self.get_mut_ptr(),
+                self.error_message_holder.get_mut_ptr(),
             );
-            check_return!(res, error_message);
-            Ok(())
+            check_return!(res, self.error_message_holder);
         }
-    }
-
-    pub fn setup_multi_ex(&self, examples: &mut MultiExample) -> Result<(), VWError> {
-        unsafe {
-            let mut error_message = ErrorMessageHolder::new();
-            let res = vowpalwabbit_sys::VWWorkspaceSetupMultiEx(
-                self.get_ptr(),
-                examples.get_mut_ptr(),
-                error_message.get_mut_ptr(),
-            );
-            check_return!(res, error_message);
-            Ok(())
-        }
+        Ok(())
     }
 }
 
@@ -362,9 +423,10 @@ impl Drop for Workspace {
 #[cfg(test)]
 mod tests {
     use crate::{
-        pool::ExamplePool,
+        example::RawExample,
+        pool::{ExamplePool, ReturnToPool},
         prediction::Prediction,
-        workspace::{Learn, Predict, Workspace},
+        workspace::{Learn, Predict, SetupExample, Workspace},
     };
 
     #[test]
@@ -382,14 +444,25 @@ mod tests {
     }
 
     #[test]
+    fn setup_example_round_trips() {
+        let args: Vec<String> = vec!["--quiet".to_owned()];
+        let maybe_workspace = Workspace::new(&args).unwrap();
+        let raw_example = RawExample::new();
+        let setup_example = maybe_workspace.setup(raw_example).unwrap();
+        let raw_example = setup_example.clear();
+        let setup_example = maybe_workspace.setup(raw_example).unwrap();
+        let _ = setup_example.clear();
+    }
+
+    #[test]
     fn parse_dsjson() {
         let args: Vec<String> = vec!["--quiet".to_owned(), "--cb_explore_adf".to_owned()];
         let workspace = Workspace::new(&args).unwrap();
         let pool = ExamplePool::new();
         let mut examples = workspace.parse_decision_service_json(r#"{"_label_cost":-0.0,"_label_probability":0.05000000074505806,"_label_Action":4,"_labelIndex":3,"o":[{"v":0.0,"EventId":"13118d9b4c114f8485d9dec417e3aefe","ActionTaken":false}],"Timestamp":"2021-02-04T16:31:29.2460000Z","Version":"1","EventId":"13118d9b4c114f8485d9dec417e3aefe","a":[4,2,1,3],"c":{"FromUrl":[{"timeofday":"Afternoon","weather":"Sunny","name":"Cathy"}],"_multi":[{"_tag":"Cappucino","i":{"constant":1,"id":"Cappucino"},"j":[{"type":"hot","origin":"kenya","organic":"yes","roast":"dark"}]},{"_tag":"Cold brew","i":{"constant":1,"id":"Cold brew"},"j":[{"type":"cold","origin":"brazil","organic":"yes","roast":"light"}]},{"_tag":"Iced mocha","i":{"constant":1,"id":"Iced mocha"},"j":[{"type":"cold","origin":"ethiopia","organic":"no","roast":"light"}]},{"_tag":"Latte","i":{"constant":1,"id":"Latte"},"j":[{"type":"hot","origin":"brazil","organic":"no","roast":"dark"}]}]},"p":[0.05,0.05,0.05,0.85],"VWState":{"m":"ff0744c1aa494e1ab39ba0c78d048146/550c12cbd3aa47f09fbed3387fb9c6ec"},"_original_label_cost":-0.0}"#, &pool).unwrap();
         assert!(examples.len() == 5);
-        workspace.setup_multi_ex(&mut examples).unwrap();
-        pool.return_multi_example(examples);
+        let setup_examples = workspace.setup(examples).unwrap();
+        pool.return_example(setup_examples);
     }
 
     #[test]
@@ -407,17 +480,17 @@ mod tests {
         let mut workspace = Workspace::new(&args).unwrap();
         let pool = ExamplePool::new();
         let mut examples = workspace.parse_decision_service_json(r#"{"_label_cost":-1.0,"_label_probability":0.05000000074505806,"_label_Action":4,"_labelIndex":3,"o":[{"v":0.0,"EventId":"13118d9b4c114f8485d9dec417e3aefe","ActionTaken":false}],"Timestamp":"2021-02-04T16:31:29.2460000Z","Version":"1","EventId":"13118d9b4c114f8485d9dec417e3aefe","a":[4,2,1,3],"c":{"FromUrl":[{"timeofday":"Afternoon","weather":"Sunny","name":"Cathy"}],"_multi":[{"_tag":"Cappucino","i":{"constant":1,"id":"Cappucino"},"j":[{"type":"hot","origin":"kenya","organic":"yes","roast":"dark"}]},{"_tag":"Cold brew","i":{"constant":1,"id":"Cold brew"},"j":[{"type":"cold","origin":"brazil","organic":"yes","roast":"light"}]},{"_tag":"Iced mocha","i":{"constant":1,"id":"Iced mocha"},"j":[{"type":"cold","origin":"ethiopia","organic":"no","roast":"light"}]},{"_tag":"Latte","i":{"constant":1,"id":"Latte"},"j":[{"type":"hot","origin":"brazil","organic":"no","roast":"dark"}]}]},"p":[0.05,0.05,0.05,0.85],"VWState":{"m":"ff0744c1aa494e1ab39ba0c78d048146/550c12cbd3aa47f09fbed3387fb9c6ec"},"_original_label_cost":-0.0}"#, &pool).unwrap();
-        workspace.setup_multi_ex(&mut examples).unwrap();
-        workspace.learn(&mut examples).unwrap();
-        workspace.learn(&mut examples).unwrap();
-        workspace.learn(&mut examples).unwrap();
-        assert_eq!(examples.len(), 5);
-        match workspace.predict(&mut examples).unwrap() {
+        let mut setup_example = workspace.setup(examples).unwrap();
+        workspace.learn(&mut setup_example).unwrap();
+        workspace.learn(&mut setup_example).unwrap();
+        workspace.learn(&mut setup_example).unwrap();
+        assert_eq!(setup_example.len(), 5);
+        match workspace.predict(&mut setup_example).unwrap() {
             Prediction::ActionScores { values } => assert_eq!(values.len(), 4),
             Prediction::ActionProbs { values: _ } => {
                 panic!("Prediction should not be Action probs")
             }
         }
-        pool.return_multi_example(examples);
+        pool.return_example(setup_example);
     }
 }

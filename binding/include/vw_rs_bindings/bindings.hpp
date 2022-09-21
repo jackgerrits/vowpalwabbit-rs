@@ -82,6 +82,9 @@ extern "C"
   // bytes is a c string and must be deleted using delete buffer
   DLL_PUBLIC int VWWorkspaceSerializeReadableModel(const VWWorkspace* workspace_handle, const unsigned char** bytes, size_t* num_bytes, VWErrorMessage* error_message) noexcept;
 
+  DLL_PUBLIC int VWWorkspaceEndPass(
+      VWWorkspace* workspace_handle, VWErrorMessage* error_message) noexcept;
+
   DLL_PUBLIC int VWWorkspaceSetupExample(
       const VWWorkspace* workspace_handle, VWExample* example_handle, VWErrorMessage* error_message) noexcept;
   DLL_PUBLIC int VWWorkspaceSetupMultiEx(
@@ -100,6 +103,11 @@ extern "C"
   // deleter.
   DLL_PUBLIC int VWWorkspacePredictMultiEx(VWWorkspace* workspace_handle, VWMultiEx* example_handle, void** prediction,
       uint32_t* prediction_type, VWErrorMessage* error_message) noexcept;
+
+  DLL_PUBLIC int VWWorkspaceRecordExample(
+      VWWorkspace* workspace_handle, VWExample* example_handle, VWErrorMessage* error_message) noexcept;
+  DLL_PUBLIC int VWWorkspaceRecordMultiEx(
+      VWWorkspace* workspace_handle, VWMultiEx* example_handle, VWErrorMessage* error_message) noexcept;
 
   typedef VWExample* VWExampleFactoryFunc(void*);
   DLL_PUBLIC int VWWorkspaceParseDSJson(const VWWorkspace* workspace_handle, const char* json_string, size_t length, VWExampleFactoryFunc example_factory, void* example_factory_context,
