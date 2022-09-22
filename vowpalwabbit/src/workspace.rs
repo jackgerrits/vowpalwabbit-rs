@@ -15,7 +15,6 @@ pub struct Workspace {
 }
 
 unsafe impl Send for Workspace {}
-unsafe impl Sync for Workspace {}
 
 unsafe fn get_action_scores_or_probs(pred_ptr: *mut c_void) -> Vec<(u32, f32)> {
     let mut length = MaybeUninit::<size_t>::zeroed();

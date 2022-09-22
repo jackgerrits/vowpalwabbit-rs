@@ -3,6 +3,7 @@ use std::cell::UnsafeCell;
 use std::collections::BTreeSet;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
+use std::sync::Arc;
 
 use anyhow::{anyhow, Context};
 use std::path::PathBuf;
@@ -194,6 +195,26 @@ fn process_command_line(input: Option<String>) -> Result<Vec<String>> {
     Ok(vw_args)
 }
 
+pub struct UnsafeWorkspaceWrapper {
+    pub workspace: UnsafeCell<Workspace>,
+}
+
+impl UnsafeWorkspaceWrapper
+{
+    pub fn as_ref(&self) -> &Workspace
+    {
+        unsafe { self.workspace.get().as_ref().unwrap() }
+    }
+
+    pub fn as_mut(&self) -> &mut Workspace
+    {
+        unsafe { self.workspace.get().as_mut().unwrap() }
+    }
+}
+
+unsafe impl Send for UnsafeWorkspaceWrapper {}
+unsafe impl Sync for UnsafeWorkspaceWrapper {}
+
 fn train(args: Train) -> Result<()> {
     rayon::ThreadPoolBuilder::new()
         .num_threads(args.parse_threads)
@@ -201,18 +222,16 @@ fn train(args: Train) -> Result<()> {
 
     let vw_args = process_command_line(args.model_args)?;
 
-    // TODO process illegal options.
-
     let pool = ExamplePool::new();
 
-    // We use an unsafe cell, because parse_decision_service_json, and the learning code does not interact.
-    let workspace: UnsafeCell<Workspace> = Workspace::new(&vw_args)
+    let unsafe_workspace_cell: UnsafeCell<Workspace> = Workspace::new(&vw_args)
         .with_context(|| format!("Failed to create workspace with args {:?}", vw_args))?
         .into();
+    // We use an unsafe cell, because parse_decision_service_json, and the learning code does not interact.
+    let shareable_workspace: UnsafeWorkspaceWrapper = UnsafeWorkspaceWrapper {
+        workspace: unsafe_workspace_cell,
+    };
     let (tx, rx) = flume::bounded(args.queue_size);
-
-    let ws_ref = unsafe { workspace.get().as_ref().unwrap() };
-    let ws = unsafe { workspace.get().as_mut().unwrap() };
 
     std::thread::scope(|s| -> Result<()> {
         s.spawn(|| {
@@ -233,7 +252,10 @@ fn train(args: Train) -> Result<()> {
                     }
                     let output_lines: Vec<_> = batch
                         .into_par_iter()
-                        .map(|line| ws_ref.parse_decision_service_json(&line, &pool))
+                        .map(|line| {
+                                shareable_workspace.as_ref()
+                                .parse_decision_service_json(&line, &pool)
+                        })
                         .collect();
 
                     for line in output_lines {
@@ -247,29 +269,33 @@ fn train(args: Train) -> Result<()> {
             std::mem::drop(tx);
         });
 
+        let unsafe_workspace_ref = shareable_workspace.as_mut();
+
         loop {
             // TODO consider skipping broken examples.
             let res = rx.recv();
             match res {
                 Ok(line) => {
-                    let mut ex = ws.setup(line?)?;
-                    ws.learn(&mut ex)?;
-                    ws.record_stats(&mut ex)?;
+                    let mut ex = unsafe_workspace_ref.setup(line?)?;
+                    unsafe_workspace_ref.learn(&mut ex)?;
+                    unsafe_workspace_ref.record_stats(&mut ex)?;
                     pool.return_example(ex);
                 }
                 // Sender has been dropped. Stop here.
                 Err(_) => break,
             }
         }
-        ws.end_pass()?;
+        unsafe_workspace_ref.end_pass()?;
         Ok(())
     })?;
+
+    let unsafe_workspace_ref = shareable_workspace.as_ref();
     if let Some(model_file) = args.output_model {
-        fs::write(model_file, &*ws_ref.serialize_model()?)?;
+        fs::write(model_file, &*unsafe_workspace_ref.serialize_model()?)?;
     }
 
     if let Some(model_file) = args.readable_model {
-        fs::write(model_file, ws_ref.serialize_readable_model()?)?;
+        fs::write(model_file, unsafe_workspace_ref.serialize_readable_model()?)?;
     }
 
     Ok(())
