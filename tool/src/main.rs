@@ -31,6 +31,8 @@ struct Cli {
 enum Commands {
     /// Train a VW model file. Currently only single pass and DSJSON input format is supported.
     Train(Train),
+    /// Train a VW model file without any parallelization. Currently only single pass and DSJSON input format is supported.
+    TrainOneThread(TrainOneThread),
 }
 
 #[derive(Parser, Debug)]
@@ -87,6 +89,41 @@ struct Train {
         help = "Number of threads to use for parsing. 0 means select automatically."
     )]
     parse_threads: usize,
+}
+
+#[derive(Parser, Debug)]
+struct TrainOneThread {
+    #[clap(
+        short,
+        long,
+        parse(from_os_str),
+        help = "List of input files to process"
+    )]
+    input: Vec<PathBuf>,
+
+    #[clap(long, value_enum, default_value_t = InputFormat::Dsjson, help="Input format to interpret input files as")]
+    input_format: InputFormat,
+
+    #[clap(
+        short,
+        long,
+        parse(from_os_str),
+        help = "If provided, writes the final trained model to this file"
+    )]
+    output_model: Option<PathBuf>,
+
+    #[clap(
+        long,
+        parse(from_os_str),
+        help = "If provided, writes the final trained model as a readable model to this file. This is the same format as VW's --readable_model ..."
+    )]
+    readable_model: Option<PathBuf>,
+
+    #[clap(
+        long,
+        help = "VW arguments to use for model training. Some arguments are not permitted as they are for driver configuration in VW or managed by this tool. For example you cannot supply --data yourself."
+    )]
+    model_args: Option<String>,
 }
 
 fn process_command_line(input: Option<String>) -> Result<Vec<String>> {
@@ -194,6 +231,52 @@ fn process_command_line(input: Option<String>) -> Result<Vec<String>> {
     Ok(vw_args)
 }
 
+pub struct UnsafeWorkspaceWrapper {
+    pub workspace: UnsafeCell<Workspace>,
+}
+
+impl UnsafeWorkspaceWrapper {
+    pub fn as_ref(&self) -> &Workspace {
+        unsafe { self.workspace.get().as_ref().unwrap() }
+    }
+
+    pub fn as_mut(&self) -> &mut Workspace {
+        unsafe { self.workspace.get().as_mut().unwrap() }
+    }
+}
+
+unsafe impl Send for UnsafeWorkspaceWrapper {}
+unsafe impl Sync for UnsafeWorkspaceWrapper {}
+
+fn train_one_thread(args: TrainOneThread) -> Result<()> {
+    let vw_args = process_command_line(args.model_args)?;
+    let pool = ExamplePool::new();
+    let mut workspace = Workspace::new(&vw_args)
+        .with_context(|| format!("Failed to create workspace with args {:?}", vw_args))?;
+
+    for file in args.input {
+        let file = File::open(file).expect("Failed to open file");
+        for line in io::BufReader::new(file).lines() {
+            let mut ex =
+                workspace.setup(workspace.parse_decision_service_json(&line.unwrap(), &pool)?)?;
+            workspace.learn(&mut ex)?;
+            workspace.record_stats(&mut ex)?;
+            pool.return_example(ex);
+        }
+    }
+    workspace.end_pass()?;
+
+    if let Some(model_file) = args.output_model {
+        fs::write(model_file, &*workspace.serialize_model()?)?;
+    }
+
+    if let Some(model_file) = args.readable_model {
+        fs::write(model_file, workspace.serialize_readable_model()?)?;
+    }
+
+    Ok(())
+}
+
 fn train(args: Train) -> Result<()> {
     rayon::ThreadPoolBuilder::new()
         .num_threads(args.parse_threads)
@@ -201,18 +284,16 @@ fn train(args: Train) -> Result<()> {
 
     let vw_args = process_command_line(args.model_args)?;
 
-    // TODO process illegal options.
-
     let pool = ExamplePool::new();
 
-    // We use an unsafe cell, because parse_decision_service_json, and the learning code does not interact.
-    let workspace: UnsafeCell<Workspace> = Workspace::new(&vw_args)
+    let unsafe_workspace_cell: UnsafeCell<Workspace> = Workspace::new(&vw_args)
         .with_context(|| format!("Failed to create workspace with args {:?}", vw_args))?
         .into();
+    // We use an unsafe cell, because parse_decision_service_json, and the learning code does not interact.
+    let shareable_workspace: UnsafeWorkspaceWrapper = UnsafeWorkspaceWrapper {
+        workspace: unsafe_workspace_cell,
+    };
     let (tx, rx) = flume::bounded(args.queue_size);
-
-    let ws_ref = unsafe { workspace.get().as_ref().unwrap() };
-    let ws = unsafe { workspace.get().as_mut().unwrap() };
 
     std::thread::scope(|s| -> Result<()> {
         s.spawn(|| {
@@ -233,7 +314,11 @@ fn train(args: Train) -> Result<()> {
                     }
                     let output_lines: Vec<_> = batch
                         .into_par_iter()
-                        .map(|line| ws_ref.parse_decision_service_json(&line, &pool))
+                        .map(|line| {
+                            shareable_workspace
+                                .as_ref()
+                                .parse_decision_service_json(&line, &pool)
+                        })
                         .collect();
 
                     for line in output_lines {
@@ -247,29 +332,33 @@ fn train(args: Train) -> Result<()> {
             std::mem::drop(tx);
         });
 
+        let unsafe_workspace_ref = shareable_workspace.as_mut();
+
         loop {
             // TODO consider skipping broken examples.
             let res = rx.recv();
             match res {
                 Ok(line) => {
-                    let mut ex = ws.setup(line?)?;
-                    ws.learn(&mut ex)?;
-                    ws.record_stats(&mut ex)?;
+                    let mut ex = unsafe_workspace_ref.setup(line?)?;
+                    unsafe_workspace_ref.learn(&mut ex)?;
+                    unsafe_workspace_ref.record_stats(&mut ex)?;
                     pool.return_example(ex);
                 }
                 // Sender has been dropped. Stop here.
                 Err(_) => break,
             }
         }
-        ws.end_pass()?;
+        unsafe_workspace_ref.end_pass()?;
         Ok(())
     })?;
+
+    let unsafe_workspace_ref = shareable_workspace.as_ref();
     if let Some(model_file) = args.output_model {
-        fs::write(model_file, &*ws_ref.serialize_model()?)?;
+        fs::write(model_file, &*unsafe_workspace_ref.serialize_model()?)?;
     }
 
     if let Some(model_file) = args.readable_model {
-        fs::write(model_file, ws_ref.serialize_readable_model()?)?;
+        fs::write(model_file, unsafe_workspace_ref.serialize_readable_model()?)?;
     }
 
     Ok(())
@@ -289,6 +378,18 @@ fn main() -> Result<()> {
                 // return;
             }
             train(args)
+        }
+        Commands::TrainOneThread(args) => {
+            if args.input.is_empty() {
+                let mut app = Cli::into_app();
+                let sub = app
+                    .find_subcommand_mut("train")
+                    .expect("train must exist as a subcommand");
+                sub.print_help()?;
+                return Err(anyhow!("At least 1 input file is required."));
+                // return;
+            }
+            train_one_thread(args)
         }
     }
 }

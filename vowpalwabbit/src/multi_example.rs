@@ -24,9 +24,7 @@ pub struct RawMultiExample {
 }
 
 unsafe impl Send for MultiExample {}
-unsafe impl Sync for MultiExample {}
 unsafe impl Send for RawMultiExample {}
-unsafe impl Sync for RawMultiExample {}
 
 impl RawMultiExample {
     pub fn new() -> RawMultiExample {

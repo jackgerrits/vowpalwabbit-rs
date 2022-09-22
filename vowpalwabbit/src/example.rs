@@ -40,9 +40,7 @@ pub struct RawExample {
 }
 
 unsafe impl Send for Example {}
-unsafe impl Sync for Example {}
 unsafe impl Send for RawExample {}
-unsafe impl Sync for RawExample {}
 impl RawExample {
     pub fn new() -> RawExample {
         unsafe {
